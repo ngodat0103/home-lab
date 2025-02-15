@@ -1,0 +1,5 @@
+{
+        "yaml.schemas": {
+                "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": "file:///home/akira/code/home-lab/ansible/services/main.yaml"
+        }
+}
