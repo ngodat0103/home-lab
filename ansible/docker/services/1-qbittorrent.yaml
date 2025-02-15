@@ -1,0 +1,19 @@
+- name: Manage qbittorrent
+  hosts: akira-home
+  become_user: akira
+  tasks:
+    - name: Start qbittorrent
+      ansible.builtin.docker_container:
+        labels:
+          com.github.ngodat0103.service: qbittorrent
+        name: qbittorrent
+        image: lscr.io/linuxserver/qbittorrent:5.0.3
+        state: started
+        restart_policy: always
+        networks:
+          - name: runtime-network
+            ipv4_address: 192.168.30.10
+        volumes:
+          - /mnt:/mnt
+          - /mnt/data2/docker/torrent_config:/config
+          
