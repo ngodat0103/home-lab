@@ -1,0 +1,29 @@
+- name: Manage my own iptables
+  hosts: akira-home
+  become: yes
+  tasks:
+  - name: Make sure default policy is deny in forward chain
+    ansible.builtin.iptables:
+      chain: FORWARD
+      policy: DROP
+  # Because the Nat in OpenVPN hides the ip of the clients in my network, 
+  #so I don't know who is using my network, so I need to disable it to make vpn site to site work properly
+  - name: Make sure disable Nat in OpenVPN
+    ansible.builtin.iptables:
+      table: nat
+      chain: POSTROUTING
+      jump: MASQUERADE
+      out_interface: tun0
+      state: absent
+  - name: Allow only my ip address to acccess the virtual network created by Docker in my local network
+    ansible.builtin.iptables:
+      chain: FORWARD
+      source: 192.168.1.2
+      destination: 192.168.30.0/24 # This is the virtual network created by Docker, named runtime-network
+      jump: ACCEPT
+  - name: Deny all traffic except my ip to access the virtual network created by OpenVPN in my local network
+    ansible.builtin.iptables:
+      chain: INPUT
+      source: "!192.168.1.2"
+      destination: 10.8.0.0/24
+      jump: DROP
