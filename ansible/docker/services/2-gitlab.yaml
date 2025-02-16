@@ -1,0 +1,24 @@
+- name: manage gitlab
+  hosts: akira-home
+  become_user: akira
+  tasks:
+  - name: Make sure Gitlab is running
+    ansible.builtin.docker_container:
+      labels:
+        com.github.ngodat0103.service: gitlab
+      name: gitlab
+      image: gitlab/gitlab-ee:17.5.5-ee.0@sha256:e7fd00e79bd0412b2fdc6cfdbded2eaefc43186ab9427d9aa881aec9b205a8da
+      state: started
+      restart_policy: always
+      env:
+        GITLAB_OMNIBUS_CONFIG: |
+          external_url 'http://gitlab.local'
+      networks:
+      - name: runtime-network
+        ipv4_address: 192.168.30.20
+      volumes:
+        - /mnt/data2/gitlab/data:/var/opt/gitlab
+        - /mnt/data2/gitlab/log:/var/log/gitlab
+        - /mnt/data2/gitlab/config:/etc/gitlab
+        - /mnt/data2/gitlab/backups:/var/opt/gitlab/backups
+
