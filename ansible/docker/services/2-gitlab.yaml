@@ -1,6 +1,6 @@
 - name: manage gitlab
   hosts: akira-home
-  become_user: akira
+  become: yes
   tasks:
   - name: Make sure Gitlab is running
     ansible.builtin.docker_container:
@@ -21,4 +21,12 @@
         - /mnt/data2/gitlab/log:/var/log/gitlab
         - /mnt/data2/gitlab/config:/etc/gitlab
         - /mnt/data2/gitlab/backups:/var/opt/gitlab/backups
-
+        - /etc/localtime:/etc/localtime:ro
+        - /etc/timezone:/etc/timezone:ro
+  - name: Config cronjab for Gitlab backup
+    ansible.builtin.cron:
+      name: "Backup Gitlab"
+      state: present
+      minute: "28"
+      hour: "0"
+      job: "docker exec gitlab gitlab-backup create 2>&1 | while IFS= read -r line; do echo \"$(date '+%Y-%m-%d %H:%M:%S') $line\"; done >> /mnt/data2/gitlab/backups/log/backup.log"
