@@ -1,0 +1,60 @@
+- name: manage bitwarden
+  hosts: akira-home
+  become_user: akira
+  vars:
+    ADMIN_TOKEN: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      36343435643735616635343166623463303432326161353036626462353964376461363566316337
+      3536663065636263313238633233653864626564373837340a353831353830373338383364393362
+      62633462656338393963633639646238313965626133623561346334656534386538626664373833
+      6439613764393462360a616461663535643833373438353133343038323738653066646161333362
+      37646463363435376534383565346333336463366361626332313830386330633135333364346439
+      33346332386337643439336138623038653266646164646363343130393335613063353164363366
+      34616161346363323065323835613537613663653637343435356661393465316132376265313366
+      66313639643136643332
+  tasks:
+  - name: Make sure bitwarden is running
+    ansible.builtin.docker_container:
+      labels:
+        com.github.ngodat0103.service: bitwarden
+      name: bitwarden
+      image: vaultwarden/server:1.33.2-alpine
+      state: started
+      restart_policy: always
+      env:
+        ADMIN_TOKEN: "{{ADMIN_TOKEN}}"
+        SIGNUPS_ALLOWED: 'false'
+        PUSH_ENABLED: 'true'
+        PUSH_INSTALLATION_ID: 54e25694-eefc-48fe-b102-b07c01008c8e
+        PUSH_INSTALLATION_KEY: rVnt5Qe79y28aOEzyIqR
+        TZ: Asia/Ho_Chi_Minh
+      networks:
+      - name: runtime-network
+        ipv4_address: 192.168.30.3
+      volumes:
+       - /home/akira/docker/vaultwarden_data:/data/
+  - name: Configure nginx to reverse proxy bitwarden
+    become: yes
+    become_user: root
+    vars:
+      upstream_name: bitwarden
+      server_ip: 192.168.30.3
+      server_port: 80
+      server_name: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          34373335376338656466366164383238643162653237313861383731396538666232333439356539
+          3963313436323937306538393533333432353763363833380a633262633534363436666362336131
+          64343733386637636465623636633464396261313561663034366136373337626337313230333234
+          3662616437306661620a393237633334666662653738623530396162303765333638623734633834
+          33396538623162363639633466366334323131306630396534376365303536643937
+      ssl_certificate: "/etc/letsencrypt/live/{{server_name}}/fullchain.pem"
+      ssl_certificate_key: /etc/letsencrypt/live/{{server_name}}/privkey.pem
+    ansible.builtin.template:
+      src: template/default.conf.j2
+      dest: /etc/nginx/conf.d/{{ server_name }}.conf
+      mode: '0600'
+      owner: root
+  - name: Reload Nginx
+    ansible.builtin.service:
+      name: nginx
+      state: reloaded
