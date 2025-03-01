@@ -1,18 +1,40 @@
 - name: manage gitlab
   hosts: akira-home
   become: yes
+  vars:
+   domain: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33373336363836343966323064343136373663313766303339663532376131313162653736323135
+          6562303739336530323964613665303034326639346466650a383532646136623163363164346432
+          61653661323435373765383736366436393831643462353831653931383032643563333063373562
+          3830366131333963330a383836623662663365326433363438333365663961303437376638656664
+          34646630633538623232633363396237666139643737383262613731623162646539
   tasks:
   - name: Make sure Gitlab is running
     ansible.builtin.docker_container:
+      exposed_ports:
+        - 80
       labels:
         com.github.ngodat0103.service: gitlab
+        traefik.enable: "true"
+        traefik.http.routers.gitlab.rule: "Host(`{{domain}}`)"
+        traefik.http.routers.gitlab.tls.certResolver: "letsencrypt"
+        traefik.http.routers.gitlab.tls: "true"
+        traefik.http.services.gitlab.loadbalancer.server.port: "80"
+        traefik.tcp.services.gitlab-ssh-service.loadbalancer.server.port: "22"
+        traefik.tcp.services.gitlab-ssh-service.loadbalancer.server.tls: "false"
+        traefik.tcp.routers.gitlab-ssh-router.rule: "HostSNI(`*`)"
+        traefik.tcp.routers.gitlab-ssh-router.entrypoints: "ssh"
+        traefik.tcp.routers.gitlab-ssh-router.tls.passthrough: "true"
+        traefik.tcp.routers.gitlab-ssh-router.tls: "false"
+        traefik.tcp.routers.gitlab-ssh-router.service: "gitlab-ssh-service"
       name: gitlab
       image: gitlab/gitlab-ee:17.5.5-ee.0@sha256:e7fd00e79bd0412b2fdc6cfdbded2eaefc43186ab9427d9aa881aec9b205a8da
       state: started
       restart_policy: always
       env:
         GITLAB_OMNIBUS_CONFIG: |
-          external_url 'http://gitlab.local'
+          external_url "http://{{domain}}"
       networks:
       - name: runtime-network
         ipv4_address: 192.168.30.20
