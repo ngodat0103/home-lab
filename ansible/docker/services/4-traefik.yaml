@@ -2,7 +2,8 @@
   hosts: akira-home
   become: yes
   vars:
-   id: 1010
+   id: "1010"
+   docker_group_id: "119"
    email: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           38373931356566356163343163643935623937666435633838373238376132653961373162326133
@@ -80,7 +81,7 @@
       name: traefik
       image: traefik:v3.3.3
       state: started
-      # user: 1010:1010
+      user: "{{id}}:{{docker_group_id}}"
       restart_policy: always
       env:
         CF_DNS_API_TOKEN: "{{cloudflare_api_token}}"
@@ -89,7 +90,10 @@
       - name: runtime-network
         ipv4_address: 192.168.30.50
       volumes:
-       - /var/run/docker.sock:/var/run/docker.sock
-       - /etc/traefik/:/etc/traefik/
+       - /var/run/docker.sock:/var/run/docker.sock:ro
+       - /etc/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
+       - /etc/traefik/acme.json:/etc/traefik/acme.json
+       - /etc/localtime:/etc/localtime:ro
+       - /etc/timezone:/etc/timezone:ro
      
     
