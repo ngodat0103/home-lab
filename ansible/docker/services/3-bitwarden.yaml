@@ -2,6 +2,13 @@
   hosts: akira-home
   become_user: akira
   vars:
+    domain: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      64323462343164666239306238313434643839626162653432336635386631663535666630363636
+      3630623035643866663833346639373163616566336131310a363733643365646464616638396634
+      36663538393132313733653834643939333234393061323363346463633838336665346130373062
+      3233336664386566610a393536346562643063303361383035353066643832383536366536343434
+      32346530636337363861616337616566656561323037623862636562623538376165
     ADMIN_TOKEN: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       36343435643735616635343166623463303432326161353036626462353964376461363566316337
@@ -17,6 +24,10 @@
     ansible.builtin.docker_container:
       labels:
         com.github.ngodat0103.service: bitwarden
+        traefik.enable: "true"
+        traefik.http.routers.bitwarden.rule: "Host(`{{domain}}`)"
+        traefik.http.routers.bitwarden.tls.certResolver: "letsencrypt"
+        traefik.http.routers.bitwarden.tls: "true"
       name: bitwarden
       image: vaultwarden/server:1.33.2-alpine
       state: started
@@ -33,28 +44,3 @@
         ipv4_address: 192.168.30.3
       volumes:
        - /home/akira/docker/vaultwarden_data:/data/
-  - name: Configure nginx to reverse proxy bitwarden
-    become: yes
-    become_user: root
-    vars:
-      upstream_name: bitwarden
-      server_ip: 192.168.30.3
-      server_port: 80
-      server_name: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          34373335376338656466366164383238643162653237313861383731396538666232333439356539
-          3963313436323937306538393533333432353763363833380a633262633534363436666362336131
-          64343733386637636465623636633464396261313561663034366136373337626337313230333234
-          3662616437306661620a393237633334666662653738623530396162303765333638623734633834
-          33396538623162363639633466366334323131306630396534376365303536643937
-      ssl_certificate: "/etc/letsencrypt/live/{{server_name}}/fullchain.pem"
-      ssl_certificate_key: /etc/letsencrypt/live/{{server_name}}/privkey.pem
-    ansible.builtin.template:
-      src: template/default.conf.j2
-      dest: /etc/nginx/conf.d/{{ server_name }}.conf
-      mode: '0600'
-      owner: root
-  - name: Reload Nginx
-    ansible.builtin.service:
-      name: nginx
-      state: reloaded
