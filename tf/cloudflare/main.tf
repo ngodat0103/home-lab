@@ -37,3 +37,13 @@ resource "cloudflare_dns_record" "bitwarden_dnsRecord"{
   ttl = 1
   type = "CNAME"
 }
+
+resource "cloudflare_dns_record" "duc_spring_dnsRecord"{
+  zone_id = local.zone_id
+  comment = local.share_comment
+  content = local.ddns_content
+  name = "duc-spring"
+  proxied = false
+  ttl = 1
+  type = "CNAME"
+}
