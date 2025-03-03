@@ -1,0 +1,11 @@
+- name: Manage kvm iptables
+  hosts: akira-home
+  become: yes
+  tasks:
+  - name: Allow network from virtual network created by kvm to access external network using MASQUERADE
+    ansible.builtin.iptables:
+      chain: POSTROUTING
+      table: nat
+      source: 192.168.100.0/24
+      out_interface: enx000ec6c36eb3
+      jump: MASQUERADE
