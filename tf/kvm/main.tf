@@ -11,15 +11,19 @@ terraform {
 provider "libvirt" {
   uri = "qemu:///system"
 }
-
+resource "libvirt_pool" "default" {
+  name = "default"
+  type = "dir"
+  path = "/var/lib/libvirt/images"
+}
 resource "libvirt_volume" "ubuntu_2204_disk" {
-  name   = "duc-ubuntu2204-vm.qcow2"
-  pool   = "default"
+  name   = "ubuntu2204-vm.qcow2"
+  pool   = libvirt_pool.default.name
   source = "https://cloud-images.ubuntu.com/releases/22.04/release-20250228/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img"
 }
 resource "libvirt_volume" "duc_vm_disk" {
   name   = "duc-vm-disk.qcow2"
-  pool   = "default"
+  pool   = libvirt_pool.default.name
   base_volume_id = libvirt_volume.ubuntu_2204_disk.id
   size  = 21474836480
 }
@@ -56,7 +60,7 @@ resource "libvirt_network" "duc-network" {
 
 resource "libvirt_domain" "duc_vm" {
   name   = "duc-ubuntu-vm"
-  memory = 2048
+  memory = 1048
   vcpu   = 1
    cpu {
     mode = "host-passthrough"
@@ -68,6 +72,7 @@ resource "libvirt_domain" "duc_vm" {
 
   network_interface {
     network_name = libvirt_network.duc-network.name
+    addresses   = ["192.168.100.102"]
   }
    console {
     type        = "pty"
