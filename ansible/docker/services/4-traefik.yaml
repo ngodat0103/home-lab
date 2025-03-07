@@ -46,13 +46,21 @@
       group: "{{id}}"
       mode: '600'
       content: |
+        accessLog: {}
+        metrics:
+          otlp: {}
+        tracing: {}
         entryPoints:
           ssh:
-            address: ":22"
+            address: ":23"
           web:
             address: ":80"
           websecure:
             address: ":443"
+            observability:
+              accessLogs: true
+              tracing: false
+              metrics: true
             http:
               redirections:
                 entryPoint:
@@ -65,6 +73,9 @@
         providers:
           docker:
             exposedByDefault: false
+          file:
+            filename: "/etc/traefik/dynamic.yaml"
+            watch: true
         certificatesResolvers:
           letsencrypt:
             acme:
@@ -81,17 +92,20 @@
       name: traefik
       image: traefik:v3.3.3
       state: started
-      user: "{{id}}:{{docker_group_id}}"
       restart_policy: always
       env:
         CF_DNS_API_TOKEN: "{{cloudflare_api_token}}"
         CF_API_EMAIL: "{{email}}"
       networks:
-      - name: runtime-network
-        ipv4_address: 192.168.30.50
+        - name: runtime-network
+          ipv4_address: 192.168.30.50
+      published_ports:
+        - "80:80"
+        - "443:443"
       volumes:
        - /var/run/docker.sock:/var/run/docker.sock:ro
        - /etc/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
+       - /etc/traefik/dynamic.yaml:/etc/traefik/dynamic.yaml:ro
        - /etc/traefik/acme.json:/etc/traefik/acme.json
        - /etc/localtime:/etc/localtime:ro
        - /etc/timezone:/etc/timezone:ro
