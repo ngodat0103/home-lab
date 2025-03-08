@@ -48,7 +48,9 @@
       content: |
         accessLog: {}
         metrics:
-          otlp: {}
+          prometheus:
+            addRoutersLabels: true
+            addServicesLabels: true
         tracing: {}
         entryPoints:
           ssh:
@@ -67,7 +69,7 @@
                   to: websecure
                   scheme: https
         log:
-          level: DEBUG
+          level: INFO
         api:
           insecure: true
         providers:

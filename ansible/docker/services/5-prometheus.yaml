@@ -1,0 +1,26 @@
+- name: Manage Prometheus
+  hosts: akira-home
+  vars:
+  tasks:
+  - name: Create prometheus configuration directory
+    ansible.builtin.file:
+      dest: /etc/prometheus
+      state: directory
+      mode: '644'
+  - name: Copy Prometheus configuration file
+    ansible.builtin.file:
+      dest: /etc/prometheus/prometheus.yaml
+      mode: '644'
+      src: files/prometheus.yaml
+  - name: Make sure Prometheus is running
+    ansible.builtin.docker_container:
+      name: prometheus
+      image: prom/prometheus:v2.53.1
+      state: started
+      restart_policy: always
+      network_mode: host
+      command: --config.file=/etc/prometheus/prometheus.yaml
+      volumes:
+       - prometheus-and-grafana_prometheus-data:/etc/prometheus
+       - /etc/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+       - /etc/localtime:/etc/localtime:ro
