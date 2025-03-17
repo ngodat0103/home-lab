@@ -1,0 +1,10 @@
+- name: Manage nfs server
+  hosts: akira-home
+  become: yes
+  tasks:
+    - name: Ensure NFS utilities are installed.
+      ansible.builtin.apt:
+        name:
+          - nfs-common
+          - nfs-kernel-server
+        state: present

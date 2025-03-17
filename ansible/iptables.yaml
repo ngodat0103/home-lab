@@ -27,7 +27,7 @@
       source: "!192.168.1.2"
       destination: 10.8.0.0/24
       jump: DROP
-  - name: Manually allow traffic from the my vpn profile created by OpenVPN to access external network
+  - name: Manually allow traffic from the my vpn profile created by OpenVPN to access external network using MASQUERADE
     ansible.builtin.iptables:
       chain: POSTROUTING
       table: nat

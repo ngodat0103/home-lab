@@ -1,0 +1,11 @@
+name: ci
+on:
+  push:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4.2.2
+    - name: Scan misconfiguration
+      run: docker run -it --rm -v .:/home-lab:ro  aquasec/trivy config /home-lab

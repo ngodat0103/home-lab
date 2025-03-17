@@ -27,7 +27,7 @@
       source: "192.168.100.0/24"
       destination: "192.168.1.120/32"
       jump: DROP
-  - name: Don't allow access my service docker network2
+  - name: Don't allow access my service docker network
     ansible.builtin.iptables:
       chain: FORWARD
       state: present

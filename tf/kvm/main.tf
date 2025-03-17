@@ -61,6 +61,7 @@ resource "libvirt_network" "duc-network" {
 resource "libvirt_domain" "duc_vm" {
   name   = "duc-ubuntu-vm"
   memory = 1048
+  autostart = true
   vcpu   = 1
    cpu {
     mode = "host-passthrough"
