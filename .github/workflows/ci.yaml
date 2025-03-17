@@ -8,4 +8,4 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4.2.2
     - name: Scan misconfiguration
-      run: docker run -it --rm -v .:/home-lab:ro  aquasec/trivy config /home-lab
+      run: docker run --rm -v .:/home-lab:ro  aquasec/trivy config /home-lab
