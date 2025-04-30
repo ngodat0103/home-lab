@@ -3,6 +3,16 @@
   become: yes
   vars:
    default_prometheus_datasource_name: 'prometheus-home'
+   grafana_alert_resources: 
+    contactPoints:
+      - orgId: 1
+        name: Email to Mine
+        receivers:
+          - uid: mine
+            type: email
+            settings:
+              addresses: ngovuminhdat@gmail.com
+              singleEmail: true
    grafana_provisioning_sync: true
    grafana_dashboards:
    # https://grafana.com/grafana/dashboards/1860-node-exporter-full/
