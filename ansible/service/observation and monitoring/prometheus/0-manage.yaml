@@ -1,9 +1,9 @@
+#Docs: 
+
 - name: Manage prometheus as agent mode
   hosts: akira-home
   become: yes
   vars:
-   CI: no
-   prometheus_agent_mode: true
    prometheus_scrape_configs:
     - job_name: 'prometheus'
       scrape_interval: 5s
@@ -19,10 +19,5 @@
       metrics_path: /metrics
       static_configs:
         - targets: [ '192.168.30.50:8080' ]
-   prometheus_remote_write: 
-    - url: https://prometheus-prod-37-prod-ap-southeast-1.grafana.net/api/prom/push
-      basic_auth:
-        username: "1731595"
-        password: "{{lookup('ansible.builtin.unvault','prometheus-server-password.yml')}}"
   roles: 
    - prometheus.prometheus.prometheus
