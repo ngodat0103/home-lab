@@ -1,0 +1,31 @@
+- name: Manage Grafana
+  hosts: akira-home
+  become: yes
+  vars:
+   default_prometheus_datasource_name: 'prometheus-home'
+   grafana_provisioning_sync: true
+   grafana_dashboards:
+   # https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+    - dashboard_id: 1860
+      revision_id: 40
+      datasource: "{{default_prometheus_datasource_name}}"
+    # https://grafana.com/grafana/dashboards/14282-cadvisor-exporter/
+    - dashboard_id: 14282
+      revision_id: 1
+      datasource: "{{default_prometheus_datasource_name}}"
+   grafana_security:
+    admin_user: akira
+    admin_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38656232333364343263613261306536306335383162363135646232636134393766323463613738
+          3933646637623131646263373131313230386663373037340a306637646635353436623730666465
+          35643634356537333438613632396364316333343864303466346339336135313766363763653539
+          3262396564663334620a613764633737376538383932373761643639396237626263353232666166
+          3664
+   grafana_datasources:
+    - name: "{{default_prometheus_datasource_name}}"
+      type: prometheus
+      url: 'http://127.0.0.1:9090'
+      basicAuth: false
+  roles:
+   - grafana.grafana.grafana
