@@ -34,7 +34,10 @@
       restart_policy: always
       env:
         GITLAB_OMNIBUS_CONFIG: |
-          external_url "http://{{domain}}"
+          external_url "https://{{domain}}"
+          nginx['listen_port'] = 80
+          nginx['listen_https'] = false
+          gitlab_rails['trusted_proxies'] = ['192.168.30.50/32']
       networks:
       - name: runtime-network
         ipv4_address: 192.168.30.20
