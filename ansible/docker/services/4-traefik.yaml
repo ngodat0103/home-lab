@@ -41,54 +41,11 @@
       mode: '600'
    - name: Create traefik configuration file
      ansible.builtin.copy:
+      src: files/traefik.yaml
       dest: /etc/traefik/traefik.yaml
       owner: "{{id}}"
       group: "{{id}}"
       mode: '600'
-      content: |
-        accessLog: {}
-        metrics:
-          prometheus:
-            addRoutersLabels: true
-            addServicesLabels: true
-        tracing: {}
-        entryPoints:
-          ssh:
-            address: ":22"
-          web:
-            address: ":80"
-          websecure:
-            address: ":443"
-            observability:
-              accessLogs: true
-              tracing: false
-              metrics: true
-            http:
-              redirections:
-                entryPoint:
-                  to: websecure
-                  scheme: https
-        log:
-          level: INFO
-        api:
-          insecure: true
-        providers:
-          docker:
-            exposedByDefault: false
-          file:
-            filename: "/etc/traefik/dynamic.yaml"
-            watch: true
-        certificatesResolvers:
-          letsencrypt:
-            acme:
-              email: {{email}}
-              storage: /etc/traefik/acme.json
-              dnsChallenge:
-                provider: cloudflare
-                # Used to make sure the dns challenge is propagated to the rights dns servers
-                resolvers:
-                  - "1.1.1.1:53"
-                  - "1.0.0.1:53"   
    - name: Make sure traefik is running
      ansible.builtin.docker_container:
       name: traefik

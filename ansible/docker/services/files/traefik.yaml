@@ -1,0 +1,43 @@
+ping:
+  entryPoint: 'web'
+accessLog: {}
+metrics:
+  prometheus:
+    addRoutersLabels: true
+    addServicesLabels: true
+entryPoints:
+  ssh:
+    address: ":22"
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    observability:
+      accessLogs: true
+      metrics: true
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+log:
+  level: INFO
+api:
+  insecure: true
+providers:
+  docker:
+    exposedByDefault: false
+  file:
+    filename: "/etc/traefik/dynamic.yaml"
+    watch: true
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ngovuminhdat@gmail.com
+      storage: /etc/traefik/acme.json
+      dnsChallenge:
+        provider: cloudflare
+        # Used to make sure the dns challenge is propagated to the rights dns servers
+        resolvers:
+        - "1.1.1.1:53"
+        - "1.0.0.1:53"
