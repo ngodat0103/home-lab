@@ -7,9 +7,12 @@
         labels:
           com.github.ngodat0103.service: qbittorrent
         name: qbittorrent
-        image: lscr.io/linuxserver/qbittorrent:5.0.3
+        image: lscr.io/linuxserver/qbittorrent:5.1.0@sha256:273c2ab36a3d6ad2b9e2a1c006ea4a407795b9a5c27a24c0dded2e55a12128eb
         state: started
         restart_policy: always
+        env:
+         PUID: "1000"
+         PGID: "1000"
         networks:
           - name: runtime-network
             ipv4_address: 192.168.30.10

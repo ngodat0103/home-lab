@@ -1,4 +1,4 @@
-- name: manage bitwarden
+- name: manage vaultwarden
   hosts: akira-home
   become_user: akira
   vars:
@@ -20,17 +20,18 @@
       34616161346363323065323835613537613663653637343435356661393465316132376265313366
       66313639643136643332
   tasks:
-  - name: Make sure bitwarden is running
+  - name: Make sure vaultwarden is running
     ansible.builtin.docker_container:
       labels:
-        com.github.ngodat0103.service: bitwarden
+        com.github.ngodat0103.service: vaultwarden
         traefik.enable: "true"
         traefik.http.routers.bitwarden.rule: "Host(`{{domain}}`)"
         traefik.http.routers.bitwarden.tls.certResolver: "letsencrypt"
         traefik.http.routers.bitwarden.entrypoints: "websecure,web"
         traefik.http.routers.bitwarden.tls: "true"
-      name: bitwarden
+      name: vaultwarden
       image: vaultwarden/server:1.33.2-alpine
+      user: 1012:1012
       state: started
       restart_policy: always
       env:
