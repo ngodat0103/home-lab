@@ -58,4 +58,4 @@
       state: present
       minute: "28"
       hour: "0"
-      job: "docker exec gitlab gitlab-backup create 2>&1 | while IFS= read -r line; do echo \"$(date '+%Y-%m-%d %H:%M:%S') $line\"; done >> /mnt/data2/gitlab/backups/log/backup.log"
+      job: "docker exec gitlab gitlab-backup create 2>&1 | while IFS= read -r line; do echo \"$(date '+%Y-%m-%d %H:%M:%S') $line\"; done >> /var/opt/gitlab/backups/backup.log"
