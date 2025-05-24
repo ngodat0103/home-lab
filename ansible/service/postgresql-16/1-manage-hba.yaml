@@ -1,0 +1,8 @@
+- name: Manage vaultwarden user
+  hosts: akira-home
+  become: yes
+  tasks:
+  - name: allow vaultwarden from runtime-network to access database using host method
+    ansible.builtin.lineinfile:
+      line: "host    vaultwarden     vaultwarden     192.168.30.3/32         scram-sha-256"
+      dest: "/etc/postgresql/16/main/pg_hba.conf"
