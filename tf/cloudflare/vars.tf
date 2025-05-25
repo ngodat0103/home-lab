@@ -1,10 +1,10 @@
 variable "cloudflare_api_token" {
-  type = string
+  type        = string
   description = "The Cloudflare API token"
-  sensitive = true
+  sensitive   = true
 }
 variable "ddns_content" {
-  type = string
+  type        = string
   description = "The content of the DDNS record"
-  sensitive = true
+  sensitive   = true
 }
