@@ -1,8 +1,14 @@
-- name: Manage vaultwarden user
+- name: Manage client authentication method
   hosts: akira-home
   become: yes
+  vars:
+   PG_HBA_PATH: '/etc/postgresql/16/main/pg_hba.conf'
   tasks:
-  - name: allow vaultwarden from runtime-network to access database using host method
-    ansible.builtin.lineinfile:
+   - name: Allow vaultwarden from runtime-network to access database using host method
+     ansible.builtin.lineinfile:
       line: "host    vaultwarden     vaultwarden     192.168.30.3/32         scram-sha-256"
-      dest: "/etc/postgresql/16/main/pg_hba.conf"
+      dest: "{{PG_HBA_PATH}}"
+   - name: Allow postrgres-exporter from runtime-network access the database using host method
+     ansible.builtin.lineinfile:
+      line: "host    all             postgres_exporter 192.168.30.0/24      scram-sha-256"
+      dest: "{{PG_HBA_PATH}}"
