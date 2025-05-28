@@ -74,6 +74,18 @@ resource "cloudflare_ruleset" "default" {
   zone_id    = local.zone_id
   rules = [
     {
+      description = "Disable log request for gitlab-runenr"
+      expression  = "(http.request.uri.path eq \"/api/v4/jobs/request\" and http.request.method eq \"POST\" and http.user_agent eq \"gitlab-runner 17.8.1 (17-8-stable; go1.23.2 X:cacheprog; linux/amd64)\" and ip.src eq 42.116.6.46)"
+      enable      = true
+      action      = "skip",
+      action_parameters = {
+        ruleset = "current"
+      }
+      logging = {
+        enabled = false
+      }
+    },
+    {
       description = "Allow healthcheck from UptimeRobot IP addresses"
       expression  = "(http.request.method eq \"HEAD\" and ip.src in {${file("${path.root}/uptimerobot-ips.txt")}})"
       enable      = true
