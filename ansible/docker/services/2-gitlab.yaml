@@ -3,6 +3,7 @@
   become: yes
   vars:
    GITLAB_HOME_DIR: "/mnt/data2/gitlab"
+   GITLAB_BACKUP_DIR: "/mnt/recovery/cloud/gitlab"
    domain: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           33373336363836343966323064343136373663313766303339663532376131313162653736323135
@@ -50,7 +51,7 @@
         - "{{GITLAB_HOME_DIR}}/data:/var/opt/gitlab"
         - "{{GITLAB_HOME_DIR}}/log:/var/log/gitlab"
         - "{{GITLAB_HOME_DIR}}/config:/etc/gitlab"
-        - "{{GITLAB_HOME_DIR}}/backups:/var/opt/gitlab/backups"
+        - "{{GITLAB_BACKUP_DIR}}:/var/opt/gitlab/backups"
         - /etc/localtime:/etc/localtime:ro
         - /etc/timezone:/etc/timezone:ro
   - name: Make sure backup script is present
@@ -63,4 +64,4 @@
       name: "Backup Gitlab daily at 1AM"
       state: present
       hour: 1
-      job: "{{GITLAB_HOME_DIR}}/backup.sh > {{GITLAB_HOME_DIR}}/backups/info.log 2> {{GITLAB_HOME_DIR}}/error.log"
+      job: "{{GITLAB_HOME_DIR}}/backup.sh > {{GITLAB_BACKUP_DIR}}/info.log 2> {{GITLAB_BACKUP_DIR}}/error.log"
