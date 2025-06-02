@@ -1,6 +1,9 @@
 ping:
   entryPoint: 'web'
-accessLog: {}
+accessLog:
+  fields:
+    names:
+      StartUTC: drop
 metrics:
   prometheus:
     addRoutersLabels: true
