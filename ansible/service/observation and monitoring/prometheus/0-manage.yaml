@@ -19,8 +19,13 @@
       scrape_interval: 1s
       static_configs:
         - targets: [ '192.168.30.50:8080' ]
-    - job_name: vaultwarden-postgres-exporter
+    - job_name: 'vaultwarden-postgres-exporter'
       static_configs:
-        - targets: ['192.168.30.101:9187']
+      - targets:
+        - 192.168.30.101:9187
+    - job_name: 'gitlab-postgres-exporter'
+      static_configs:
+        - targets:
+          - 192.168.30.201:9187
   roles: 
    - prometheus.prometheus.prometheus

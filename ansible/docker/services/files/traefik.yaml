@@ -1,9 +1,20 @@
+experimental:
+  plugins:
+    cloudflarewarp:
+      moduleName: "github.com/BetterCorp/cloudflarewarp"
+      version: "v1.3.3"
 ping:
   entryPoint: 'web'
 accessLog:
   fields:
+    defaultMode: keep
     names:
       StartUTC: drop
+    headers:
+      defaultMode: keep
+      names:
+        X-Real-IP: keep
+        X-Forwarded-For: keep
 metrics:
   prometheus:
     addRoutersLabels: true

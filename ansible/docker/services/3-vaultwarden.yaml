@@ -52,6 +52,7 @@
         traefik.http.routers.bitwarden.tls.certResolver: "letsencrypt"
         traefik.http.routers.bitwarden.entrypoints: "websecure,web"
         traefik.http.routers.bitwarden.tls: "true"
+        traefik.http.routers.bitwarden.middlewares: "cloudflarewarp-middleware@file"
       name: vaultwarden
       image: vaultwarden/server:1.33.2-alpine
       user: "{{UID}}:{{GID}}"
