@@ -39,20 +39,9 @@ resource "cloudflare_dns_record" "bitwarden_dnsRecord" {
   type    = "CNAME"
 }
 
-resource "cloudflare_dns_record" "duc_spring_dnsRecord" {
-  zone_id = local.zone_id
-  comment = local.share_comment
-  content = local.ddns_content
-  name    = "duc-spring"
-  proxied = false
-  ttl     = 1
-  type    = "CNAME"
-}
-
 
 
 ## Firewall
-
 resource "null_resource" "download_uptimerobot_ips" {
   provisioner "local-exec" {
     command = "curl -o ${path.root}/uptimerobot-ips.txt https://uptimerobot.com/inc/files/ips/IPv4.txt"
