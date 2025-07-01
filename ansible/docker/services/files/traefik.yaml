@@ -1,8 +1,3 @@
-experimental:
-  plugins:
-    cloudflarewarp:
-      moduleName: "github.com/BetterCorp/cloudflarewarp"
-      version: "v1.3.3"
 ping:
   entryPoint: 'web'
 accessLog:
@@ -23,9 +18,9 @@ entryPoints:
   ssh:
     address: ":22"
   web:
-    address: ":80"
+    address: ":30080"
   websecure:
-    address: ":443"
+    address: ":30443"
     observability:
       accessLogs: true
       metrics: true

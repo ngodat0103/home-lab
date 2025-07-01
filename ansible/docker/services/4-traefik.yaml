@@ -51,6 +51,7 @@
       name: traefik
       image: traefik:v3.3.3
       state: started
+      user: "{{id}}:{{docker_group_id}}"
       restart_policy: always
       env:
         CF_DNS_API_TOKEN: "{{cloudflare_api_token}}"
@@ -59,8 +60,8 @@
         - name: runtime-network
           ipv4_address: 192.168.30.50
       published_ports:
-        - "80:80"
-        - "443:443"
+        - "80:30080"
+        - "443:30443"
       volumes:
        - /var/run/docker.sock:/var/run/docker.sock:ro
        - /etc/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
