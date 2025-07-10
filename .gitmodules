@@ -1,3 +1,6 @@
 [submodule "ansible/service/postgresql/ansible-role-postgresql"]
 	path = ansible/service/postgresql/ansible-role-postgresql
 	url = https://github.com/geerlingguy/ansible-role-postgresql.git
+[submodule "vagrant-template"]
+	path = vagrant-template
+	url = https://github.com/ngodat0103/vagrant-template.git
