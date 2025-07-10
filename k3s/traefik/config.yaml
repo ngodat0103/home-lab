@@ -1,0 +1,30 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    persistence:
+      # -- Enable persistence using Persistent Volume Claims
+      # ref: http://kubernetes.io/docs/user-guide/persistent-volumes/.
+      # It can be used to store TLS certificates along with `certificatesResolvers.<name>.acme.storage`  option
+      enabled: true
+      name: data
+      existingClaim: ""
+      accessMode: ReadWriteOnce
+      size: 256Mi
+      storageClass: ""
+      volumeName: ""
+      path: /data
+      annotations: {}
+      # -- Only mount a subpath of the Volume into the pod
+      subPath: ""
+    envFrom:
+      - secretRef:
+          name: traefik-secret
+    additionalArguments:
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge
+      - --certificatesresolvers.letsencrypt.acme.email=ngovuminhdat@gmai.com
+      - --certificatesresolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare
+      - --certificatesresolvers.letsencrypt.acme.storage=/data/acme.json
