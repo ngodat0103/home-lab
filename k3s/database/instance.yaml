@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql
+  namespace: database
+spec:
+  managed:
+    roles:
+    - name: vaultwarden
+      ensure: present
+      comment: "Role for Vaultwarden"
+      login: true
+      superuser: false
+      passwordSecret:
+        name: "vaultwarden-db-secret"
+    - name: gitlab
+      ensure: present
+      comment: "Role for Gitlab"
+      login: true
+      superuser: false
+      passwordSecret:
+        name: "gitlab-db-secret"
+  instances: 1
+  storage:
+    size: 30Gi
