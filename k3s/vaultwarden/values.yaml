@@ -548,7 +548,7 @@ adminRateLimitMaxBurst: "3"
 ## @param timeZone Specify timezone different from the default (UTC).
 ## For example: "Europe/Berlin"
 ##
-timeZone: ""
+timeZone: "Asia/Ho_Chi_Minh"
 
 ## @section BETA Features
 ##
@@ -614,10 +614,10 @@ duo:
 smtp:
   ## @param smtp.existingSecret Name of an existing secret containing the SMTP username and password. Also set smtp.username.existingSecretKey and smtp.password.existingSecretKey.
   ##
-  existingSecret: ""
+  existingSecret: "vaultwarden-secret"
   ## @param smtp.host SMTP host
   ##
-  host: ""
+  host: "smtp.gmail.com"
   ## @param smtp.security SMTP Encryption method
   ## Possible values:
   ##  - starttls: explicit TLS using ports 587 or 25
@@ -627,11 +627,11 @@ smtp:
   security: "starttls"
   ## @param smtp.port SMTP port
   ##
-  port: 25
+  port: 587
   ## @param smtp.from SMTP sender email address
   ## Example: juan.delacruz@gmail.com
   ##
-  from: ""
+  from: "21521935@gm.uit.edu.vn"
   ## @param smtp.fromName SMTP sender FROM
   ##
   fromName: ""
@@ -645,7 +645,7 @@ smtp:
     ## @param smtp.username.existingSecretKey When using an existing secret, specify the key which contains the username.
     ## Example: SMTP_USERNAME
     ##
-    existingSecretKey: ""
+    existingSecretKey: "SMTP_USERNAME"
   ## Password for SMTP authentication.
   ##
   password:
@@ -656,7 +656,7 @@ smtp:
     ## @param smtp.password.existingSecretKey When using an existing secret, specify the key which contains the password.
     ## Example: SMTP_PASSWORD
     ##
-    existingSecretKey: ""
+    existingSecretKey: "SMTP_PASSWORD"
   ## @param smtp.authMechanism SMTP authentication mechanism
   ## Possible values: "Plain", "Login", "Xoauth2"
   ## Multiple options need to be separated by a comma. (not tested)

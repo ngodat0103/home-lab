@@ -19,4 +19,3 @@ spec:
     name: "postgresql"
   name: gitlab
   owner: gitlab
-  
