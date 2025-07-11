@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vaultwarden.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: vaultwarden
+    {{- include "vaultwarden.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.service.labels }}
+    {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type | quote }}
+  selector:
+    app.kubernetes.io/component: vaultwarden
+    {{- include "vaultwarden.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: "http"
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+{{- if .Values.service.ipFamilyPolicy }}
+  ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy }}
+{{- end }}
+{{- if .Values.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+{{- end }}
+{{- if .Values.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+  {{- toYaml .Values.service.sessionAffinityConfig | nindent 4 }}
+{{- end }}

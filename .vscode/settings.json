@@ -5,7 +5,12 @@
                         "file:///home/akira/code/home-lab/ansible/nfs/1-nfs-linux.yaml"
                 ],
                 "https://json.schemastore.org/traefik-v2.json": "file:///home/akira/code/home-lab/ansible/docker/services/files/traefik.yaml",
-                "https://json.schemastore.org/github-action.json": "file:///home/akira/code/home-lab/.github/ci.yaml"
+                "https://json.schemastore.org/github-action.json": "file:///home/akira/code/home-lab/.github/ci.yaml",
+                "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": "file:///home/akira/code/home-lab/ansible/service/postgresql/vars.yml",
+                "file:///home/akira/code/home-lab/k3s/pg-jsonschema.json": [
+                        "file:///home/akira/code/home-lab/k3s/database/postgres.yaml"
+                ],
+                "https://www.schemastore.org/kustomization.json": "file:///home/akira/code/home-lab/k3s/traefik/secret.yaml"
         },
-        "ansible.python.interpreterPath": "/usr/bin/python3.12"
+        "ansible.python.interpreterPath": "/usr/bin/python3.12",
 }
