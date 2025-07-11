@@ -24,7 +24,6 @@ spec:
       - secretRef:
           name: traefik-secret
     additionalArguments:
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge
       - --certificatesresolvers.letsencrypt.acme.email=ngovuminhdat@gmai.com
       - --certificatesresolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare
       - --certificatesresolvers.letsencrypt.acme.storage=/data/acme.json
