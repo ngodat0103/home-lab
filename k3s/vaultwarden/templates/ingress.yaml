@@ -1,0 +1,83 @@
+{{- $ingress := .Values.ingress -}}
+{{- $fullname := .Release.fullname -}}
+{{- if $ingress.enabled }}
+{{- $newAPIversion := .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+{{- if $newAPIversion }}
+apiVersion: networking.k8s.io/v1
+{{- else }}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ include "vaultwarden.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: vaultwarden
+    {{- include "vaultwarden.labels" . | nindent 4 }}
+    {{- range $key, $value := $ingress.labels }}
+    {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+    {{- end }}
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    {{- if $ingress.tls }}
+    ingress.kubernetes.io/ssl-redirect: "true"
+    {{- end }}
+    {{- if $ingress.additionalAnnotations }}
+    {{- toYaml $ingress.additionalAnnotations | nindent 4 }}
+    {{- end }}
+    {{- if $ingress.nginxIngressAnnotations }}
+    {{- if $ingress.customHeadersConfigMap }}
+    nginx.ingress.kubernetes.io/custom-headers: {{ .Release.Namespace }}/custom-headers-configmap
+    {{- end }}
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    {{- if $ingress.tls }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    {{- end }}
+    nginx.ingress.kubernetes.io/limit-connections: "25"
+    nginx.ingress.kubernetes.io/limit-rps: "15"
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    {{- if $ingress.nginxAllowList }}
+    nginx.ingress.kubernetes.io/whitelist-source-range: {{ $ingress.nginxAllowList }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if $ingress.class }}
+  ingressClassName: {{ $ingress.class | quote }}
+  {{- end }}
+  {{- if $ingress.tls }}
+  tls:
+    - hosts:
+        - {{ $ingress.hostname | quote }}
+        {{- range $ingress.additionalHostnames }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ $ingress.tlsSecret }}
+  {{- end }}
+  rules:
+    {{- range $ingress.additionalHostnames }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+        - path: {{ $ingress.path }}
+          pathType: {{ $ingress.pathType }}
+          backend:
+            service:
+              name: {{ include "vaultwarden.fullname" $ }}
+              port:
+                name: "http"
+    {{- end }}
+    - host: {{ $ingress.hostname | quote }}
+      http:
+        paths:
+        - path: {{ $ingress.path }}
+          pathType: {{ $ingress.pathType }}
+          backend:
+            service:
+              name: {{ include "vaultwarden.fullname" . }}
+              port:
+                name: "http"
+{{- end }}
