@@ -726,7 +726,9 @@ ingress:
   nginxIngressAnnotations: true
   ## @param ingress.additionalAnnotations Additional annotations for the ingress resource.
   ##
-  additionalAnnotations: {}
+  additionalAnnotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "letsencrypt"
   ## @param ingress.labels Additional labels for the ingress resource.
   ##
   labels: {}
