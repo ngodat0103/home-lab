@@ -5,6 +5,12 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    ports:
+     web:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
     persistence:
       # -- Enable persistence using Persistent Volume Claims
       # ref: http://kubernetes.io/docs/user-guide/persistent-volumes/.
