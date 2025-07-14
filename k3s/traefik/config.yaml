@@ -14,7 +14,7 @@ spec:
       existingClaim: ""
       accessMode: ReadWriteOnce
       size: 256Mi
-      storageClass: ""
+      storageClass: "nfs-client"
       volumeName: ""
       path: /data
       annotations: {}
