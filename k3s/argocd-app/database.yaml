@@ -1,0 +1,14 @@
+apiVersion: "argoproj.io/v1alpha1"
+kind: Application
+metadata:
+  name: postgresql
+  namespace: argocd
+spec:
+  project: "default"
+  destination:
+    namespace: "database"
+    name: "in-cluster"
+  source:
+    repoURL: "https://github.com/ngodat0103/home-lab.git"
+    targetRevision: "datnvm/argocd-dev"
+    path: "k3s/postgresql"
