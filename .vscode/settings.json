@@ -15,7 +15,7 @@
                  ,
                  "file:///home/akira/code/home-lab/k3s/redis/json-schema/redis_redis_redis_opstreelabs_in_schema_v0.json" : ["/home/akira/code/home-lab/k3s/redis/redis-standalone.yaml"]
         ,
-        "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/application_v1alpha1.json" : ["argocd-app/*.yaml"]
+        "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/application_v1alpha1.json" : ["*/argo-app.yaml"]
                 },
         "ansible.python.interpreterPath": "/usr/bin/python3.12",
 }
