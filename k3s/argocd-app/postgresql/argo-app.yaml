@@ -9,6 +9,8 @@ spec:
     namespace: "database"
     name: "in-cluster"
   source:
+    directory:
+      recurse: true
     repoURL: "https://github.com/ngodat0103/home-lab.git"
     targetRevision: "datnvm/argocd-dev"
     path: "k3s/postgresql"
