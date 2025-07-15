@@ -1,6 +1,10 @@
 name: ci
 on:
   push:
+    branches: [ "master" ]
+    paths:
+    - "**/*.yaml"
+  pull_request:
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -8,4 +12,4 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4.2.2
     - name: Scan misconfiguration
-      run: docker run --rm -v .:/home-lab:ro  aquasec/trivy config /home-lab
+      run: docker run --rm -v .:/home-lab:ro  aquasec/trivy config --exit-code 10 /home-lab
