@@ -4,6 +4,20 @@ metadata:
   name: postgresql
   namespace: database
 spec:
+  imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
+  # Acorrdinng to requirement of Gitlab
+  # https://docs.gitlab.com/install/requirements/#postgresql-tuning
+  resources:
+    requests:
+      memory: 6Gi
+    limits:
+      memory: 8Gi
+  postgresql:
+    parameters:
+      work_mem: "8MB"
+      maintenance_work_mem: "64MB"
+      shared_buffers: "2GB"
+      statement_timeout: "60"
   managed:
     roles:
     - name: vaultwarden
