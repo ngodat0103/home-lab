@@ -1,18 +1,20 @@
 apiVersion: "argoproj.io/v1alpha1"
 kind: Application
 metadata:
-  name: vaultwarden
+  name: vaultwarden-prod
   namespace: argocd
 spec:
   project: "default"
   destination:
     namespace: "vaultwarden"
     name: "in-cluster"
-  source:
-    helm:
+  sources:
+  - helm:
       valueFiles:
-      - "values.yaml"
+      - "$config/k3s/argocd-app/vaultwarden/values.yaml"
     repoURL: "https://guerzon.github.io/vaultwarden"
     chart: "vaultwarden"
+    targetRevision: "0.32.1"
+  - repoURL: "https://github.com/ngodat0103/home-lab.git"
     targetRevision: "datnvm/argocd-dev"
-    path: "k3s/argocd-app/vaultwarden"
+    ref: "config"
