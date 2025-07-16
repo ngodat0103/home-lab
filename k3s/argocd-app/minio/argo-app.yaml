@@ -4,6 +4,10 @@ metadata:
   namespace: "argocd"
   name: "minio-prod"
 spec:
+  syncPolicy:
+    automated:
+      enabled: true
+      selfHeal: true
   project: "default"
   destination:
     namespace: "minio"
