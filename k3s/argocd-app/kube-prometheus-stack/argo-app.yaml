@@ -1,0 +1,23 @@
+apiVersion: "argoproj.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: kube-prometheus-stack-prod
+  namespace: argocd
+spec:
+  project: "default"
+  syncPolicy:
+    automated:
+      selfHeal: true
+      enabled: true
+  destination:
+    name: "in-cluster"
+    namespace: "monitoring"
+  sources:
+  - repoURL: "https://prometheus-community.github.io/helm-charts"
+    chart: "kube-prometheus-stack"
+    helm:
+      valueFiles: [ "$config/k3s/argocd-app/kube-prometheus-stack/values.yaml" ]
+    targetRevision: "75.11.0"
+  - repoURL: "https://github.com/ngodat0103/home-lab.git"
+    targetRevision: "datnvm/argocd-dev"
+    ref: config
