@@ -4748,7 +4748,7 @@ prometheus:
 
   ## Skip certificate verification
   ##
-  # insecureSkipVerify: false
+  insecureSkipVerify: true
 
   ## Path to client key file
   ##
