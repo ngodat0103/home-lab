@@ -5,7 +5,7 @@ metadata:
   namespace: database
 spec:
   imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
-  # Acorrdinng to requirement of Gitlab
+  # According to requirement of Gitlab
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
     requests:
