@@ -6,6 +6,8 @@ metadata:
 spec:
   project: "default"
   syncPolicy:
+    syncOptions:
+    - "ServerSideApply=True"
     automated:
       selfHeal: true
       enabled: true
