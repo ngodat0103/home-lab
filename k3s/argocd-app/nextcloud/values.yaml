@@ -570,7 +570,7 @@ service:
 ##
 persistence:
   # Nextcloud Data (/var/www/html)
-  enabled: true
+  enabled: false
   annotations: {}
   ## nextcloud data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
@@ -579,24 +579,24 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
-  storageClass: "nfs-client"
+  #storageClass: "nfs-client"
   ## A manually managed Persistent Volume and Claim
   ## Requires persistence.enabled: true
   ## If defined, PVC must be created manually before volume will be bound
   # existingClaim:
-  accessMode: ReadWriteMany
-  size: 100Gi
+  #accessMode: ReadWriteMany
+  #size: 100Gi
 
   ## Use an additional pvc for the data directory rather than a subpath of the default PVC
   ## Useful to store data on a different storageClass (e.g. on slower disks)
   nextcloudData:
-    enabled: false
-    subPath:
+    enabled: true
+    #subPath:
     annotations: {}
-    # storageClass: "-"
+    storageClass: "nfs-client"
     # existingClaim:
-    accessMode: ReadWriteOnce
-    size: 8Gi
+    accessMode: ReadWriteMany
+    size: 300Gi
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
