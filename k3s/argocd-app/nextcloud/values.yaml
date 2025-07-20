@@ -17,7 +17,7 @@ deploymentAnnotations: {}
 deploymentLabels: {}
 
 # Number of replicas to be deployed
-replicaCount: 1
+replicaCount: 2
 
 ## Allowing use of ingress controllers
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
@@ -28,6 +28,7 @@ ingress:
   annotations:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: "letsencrypt"
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
 
   #  nginx.ingress.kubernetes.io/proxy-body-size: 4G
   #  kubernetes.io/tls-acme: "true"
