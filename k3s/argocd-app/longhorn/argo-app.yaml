@@ -1,0 +1,27 @@
+apiVersion: "argoproj.io/v1alpha1"
+kind: Application
+metadata:
+  namespace: argocd
+  name: longhorn-prod
+spec:
+  revisionHistoryLimit: 2
+  project: "default"
+  destination:
+    name: in-cluster
+    namespace: longhorn
+  syncPolicy:
+    syncOptions: [ "ServerSideApply=True", "AutoCreateNamespace=True" ]
+    automated:
+      enabled: true
+      selfHeal: true
+      prune: true
+  sources:
+  - repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.7.3
+    helm:
+      valueFiles:
+      - "$config/k3s/argocd-app/longhorn/values.yaml"
+  - repoURL: "https://github.com/ngodat0103/home-lab.git"
+    targetRevision: "datnvm/argocd-dev"
+    ref: "config"
