@@ -203,7 +203,7 @@ defaultSettings:
   # -- Setting that allows Longhorn to automatically create a default disk only on nodes with the label "node.longhorn.io/create-default-disk=true" (if no other disks exist). When this setting is disabled, Longhorn creates a default disk on each node that is added to the cluster.
   createDefaultDiskLabeledNodes: ~
   # -- Default path for storing data on a host. The default value is "/var/lib/longhorn/".
-  defaultDataPath: ~
+  defaultDataPath: /data/longhorn
   # -- Default data locality. A Longhorn volume has data locality if a local replica of the volume exists on the same node as the pod that is using the volume.
   defaultDataLocality: ~
   # -- Setting that allows scheduling on nodes with healthy replicas of the same volume. This setting is disabled by default.

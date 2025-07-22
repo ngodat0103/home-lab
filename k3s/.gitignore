@@ -84,3 +84,4 @@ data.sql
 backup.sql
 rsa_key.pem
 secret.yaml
+data
