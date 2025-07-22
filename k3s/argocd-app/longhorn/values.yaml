@@ -430,14 +430,14 @@ longhornUI:
 
 ingress:
   # -- Setting that allows Longhorn to generate ingress records for the Longhorn UI service.
-  enabled: false
+  enabled: true
 
   # -- IngressClass resource that contains ingress configuration, including the name of the Ingress controller.
   # ingressClassName can replace the kubernetes.io/ingress.class annotation used in earlier Kubernetes releases.
-  ingressClassName: ~
+  ingressClassName: "traefik"
 
   # -- Hostname of the Layer 7 load balancer.
-  host: sslip.io
+  host: longhorn.ngodat0103.live
 
   # -- Setting that allows you to enable TLS on ingress records.
   tls: false
@@ -446,7 +446,7 @@ ingress:
   secureBackends: false
 
   # -- TLS secret that contains the private key and certificate to be used for TLS. This setting applies only when TLS is enabled on ingress records.
-  tlsSecret: longhorn.local-tls
+  tlsSecret: {}
 
   # -- Default ingress path. You can access the Longhorn UI by following the full ingress path {{host}}+{{path}}.
   path: /
@@ -462,7 +462,9 @@ ingress:
   ##
   ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
   # -- Ingress annotations in the form of key-value pairs.
-  annotations: #  kubernetes.io/ingress.class: nginx
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "letsencrypt"
 
   #  kubernetes.io/tls-acme: true
 
