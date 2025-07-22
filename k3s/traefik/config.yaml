@@ -19,9 +19,9 @@ spec:
       enabled: true
       name: data
       existingClaim: ""
-      accessMode: ReadWriteOnce
+      accessMode: ReadWriteMany
       size: 256Mi
-      storageClass: "nfs-client"
+      storageClass: "longhorn"
       volumeName: ""
       path: /data
       annotations: {}
