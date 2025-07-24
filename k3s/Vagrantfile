@@ -14,28 +14,7 @@ Vagrant.configure("2") do |config|
  master.vm.provision "shell", path: "master.sh"
  master.vm.provider "virtualbox" do |vb| 
  vb.memory = 4096 
- # Create additional disk for /data
- disk_path = "./data/master-data-disk.vdi"
- unless File.exist?(disk_path)
-   vb.customize ['createhd', '--filename', disk_path, '--size', 50 * 1024] # 50GB
- end
- vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk_path]
 end 
- # Provision script to format and mount the disk
- master.vm.provision "shell", inline: <<-SHELL
-   # Format the disk if not already formatted
-   if ! blkid /dev/sdb; then
-     mkfs.ext4 /dev/sdb
-   fi
-   # Create mount point
-   mkdir -p /data
-   # Add to fstab if not already present
-   if ! grep -q "/dev/sdb" /etc/fstab; then
-     echo "/dev/sdb /data ext4 defaults 0 2" >> /etc/fstab
-   fi
-   # Mount the disk
-   mount -a
- SHELL
  end
 
 
@@ -48,28 +27,7 @@ end
  worker1.vm.provider "virtualbox" do |vb|
  vb.memory = 8096
  vb.cpus = 4
- # Create additional disk for /data
- disk_path = "./data/worker1-data-disk.vdi"
- unless File.exist?(disk_path)
-   vb.customize ['createhd', '--filename', disk_path, '--size', 50 * 1024] # 50GB
- end
- vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk_path]
 end
- # Provision script to format and mount the disk
- worker1.vm.provision "shell", inline: <<-SHELL
-   # Format the disk if not already formatted
-   if ! blkid /dev/sdb; then
-     mkfs.ext4 /dev/sdb
-   fi
-   # Create mount point
-   mkdir -p /data
-   # Add to fstab if not already present
-   if ! grep -q "/dev/sdb" /etc/fstab; then
-     echo "/dev/sdb /data ext4 defaults 0 2" >> /etc/fstab
-   fi
-   # Mount the disk
-   mount -a
- SHELL
  end
 
 
@@ -79,29 +37,5 @@ end
  worker2.vm.hostname = "worker2"
  worker2.vm.box_version = "2506.0.0"
  worker2.vm.provision "shell", path: "worker.sh"
- worker2.vm.provider "virtualbox" do |vb|
- vb.memory = 2048
- # Create additional disk for /data
- disk_path = "./data/worker2-data-disk.vdi"
- unless File.exist?(disk_path)
-   vb.customize ['createhd', '--filename', disk_path, '--size', 50 * 1024] # 50GB
- end
- vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk_path]
- end
- # Provision script to format and mount the disk
- worker2.vm.provision "shell", inline: <<-SHELL
-   # Format the disk if not already formatted
-   if ! blkid /dev/sdb; then
-     mkfs.ext4 /dev/sdb
-   fi
-   # Create mount point
-   mkdir -p /data
-   # Add to fstab if not already present
-   if ! grep -q "/dev/sdb" /etc/fstab; then
-     echo "/dev/sdb /data ext4 defaults 0 2" >> /etc/fstab
-   fi
-   # Mount the disk
-   mount -a
- SHELL
  end
 end
