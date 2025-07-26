@@ -5,11 +5,14 @@ metadata:
   namespace: database
 spec:
   imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
+  affinity:
+    nodeSelector:
+      k3s.io.hostname: "master-node"
   # According to requirement of Gitlab
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
     requests:
-      memory: 2Gi
+      memory: 1Gi
     limits:
       memory: 8Gi
   postgresql:
@@ -44,4 +47,4 @@ spec:
   instances: 1
   storage:
     size: 40Gi
-    storageClass: "longhorn"
+    storageClass: "local-path"
