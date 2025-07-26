@@ -1,6 +1,5 @@
 # docs: https://github.com/bitnami-labs/sealed-secrets/blob/v0.30.0/helm/sealed-secrets/values.yaml
 
-
 ## @section Sealed Secrets Parameters
 
 ## Sealed Secrets image
@@ -200,10 +199,13 @@ runtimeClassName: ""
 ## @param affinity [object] Affinity for Sealed Secret pods assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ##
-affinity: {}
-## @param nodeSelector [object] Node labels for Sealed Secret pods assignment
-## ref: https://kubernetes.io/docs/user-guide/node-selection/
-##
+affinity:
+  preferredDuringSchedulingIgnoredDuringExecution:
+    nodeSelector:
+      cloud-uit: "true"
+    ## @param nodeSelector [object] Node labels for Sealed Secret pods assignment
+    ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+    ##
 nodeSelector: {}
 ## @param tolerations [array] Tolerations for Sealed Secret pods assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/

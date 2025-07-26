@@ -1,5 +1,5 @@
 apiVersion: "argoproj.io/v1alpha1"
-kind: "application"
+kind: "Application"
 metadata:
   name: "sealed-secrets"
   namespace: "argocd"
@@ -8,7 +8,6 @@ spec:
   syncPolicy:
     syncOptions:
     - "ServerSideApply=true"
-    - "CreateNamespace=true"
     automated:
       enabled: true
       selfHeal: true
