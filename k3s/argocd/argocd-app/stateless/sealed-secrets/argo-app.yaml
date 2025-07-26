@@ -1,0 +1,22 @@
+apiVersion: "argoproj.io/v1alpha1"
+kind: "application"
+metadata:
+  name: "sealed-secrets"
+  namespace: "argocd"
+spec:
+  project: "default"
+  syncPolicy:
+    syncOptions:
+    - "ServerSideApply=true"
+    - "CreateNamespace=true"
+    automated:
+      enabled: true
+      selfHeal: true
+      prune: true
+  destination:
+    name: "in-cluster"
+    namespace: "sealed-secrets"
+  source:
+    repoURL: "https://bitnami-labs.github.io/sealed-secrets"
+    targetRevision: "2.17.2"
+    chart: "sealed-secrets"

@@ -9,7 +9,7 @@ spec:
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
     requests:
-      memory: 6Gi
+      memory: 2Gi
     limits:
       memory: 8Gi
   postgresql:
@@ -43,4 +43,5 @@ spec:
         name: nextcloud-db-secret
   instances: 1
   storage:
-    size: 30Gi
+    size: 40Gi
+    storageClass: "longhorn"

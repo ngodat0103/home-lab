@@ -23,9 +23,13 @@
                 "kubernetes://schema/apps/v1%40statefulset": "file:///home/akira/code/home-lab/k3s/qbittorrent/stateful.yaml",
                 "kubernetes://schema/v1@service": "file:///home/akira/code/home-lab/k3s/qbittorrent/service.yaml",
                 "kubernetes://schema/v1@persistentvolumeclaim": "file:///home/akira/code/home-lab/k3s/qbittorrent/pvc.yaml",
-                "kubernetes://schema/v1@persistentvolume": "file:///home/akira/code/home-lab/k3s/qbittorrent/movie-pv.yaml"
-        ,
-        "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.31.6/ingress-networking-v1.json": ["*/ingress.yaml"]
+                "kubernetes://schema/v1@persistentvolume": "file:///home/akira/code/home-lab/k3s/qbittorrent/movie-pv.yaml",
+                "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.31.6/ingress-networking-v1.json": [
+                        "*/ingress.yaml"
+                ],
+                "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/appproject_v1alpha1.json": [
+                        "**/argocd/projects/*.yaml"
+                ]
         },
         "ansible.python.interpreterPath": "/usr/bin/python3.12",
 }

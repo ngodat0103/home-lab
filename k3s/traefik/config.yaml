@@ -25,7 +25,7 @@ spec:
       enabled: true
       name: data
       existingClaim: ""
-      accessMode: ReadWriteOnce
+      accessMode: ReadWriteMany
       size: 256Mi
       storageClass: "longhorn"
       volumeName: ""
