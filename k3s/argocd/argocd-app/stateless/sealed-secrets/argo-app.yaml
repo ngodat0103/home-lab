@@ -5,6 +5,7 @@ metadata:
   namespace: "argocd"
 spec:
   project: "default"
+  revisionHistoryLimit: 2
   syncPolicy:
     syncOptions:
     - "ServerSideApply=true"

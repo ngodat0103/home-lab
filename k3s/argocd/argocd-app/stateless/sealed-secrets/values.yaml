@@ -199,7 +199,7 @@ runtimeClassName: ""
 ## @param affinity [object] Affinity for Sealed Secret pods assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ##
-aaffinity:
+affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
@@ -208,7 +208,6 @@ aaffinity:
           operator: In
           values:
           - "true"
-
 ## @param nodeSelector [object] Node labels for Sealed Secret pods assignment
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
 ##
