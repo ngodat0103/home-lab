@@ -83,7 +83,24 @@ podLabels: {}
 
 ## @param initContainers extra init containers for initializing the vaultwarden instance
 ##
-initContainers: []
+initContainers:
+- name: setup-rsa-key
+  image: busybox
+  command:
+  - "sh"
+  - "-c"
+  - |-
+    echo "$RSA_KEY" | sed 's/" "/\n/g' > /data/rsa_key.pem
+    chmod 400 /data/rsa_key.pem
+  env:
+  - name: RSA_KEY
+    valueFrom:
+      secretKeyRef:
+        key: rsa_key.pem
+        name: vaultwarden
+  volumeMounts:
+  - name: vaultwarden-data
+    mountPath: "/data"
 
 ## @param sidecars extra containers running alongside the vaultwarden instance
 ##
@@ -113,19 +130,20 @@ serviceAccount:
 
 ## @param podSecurityContext Pod security options
 ##
-podSecurityContext: {}
-
-## @param securityContext Default security options to run vault as read only container without privilege escalation
-securityContext:
+podSecurityContext:
   allowPrivilegeEscalation: false
   privileged: false
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsGroup: 1012
   runAsUser: 1012
+  fsGroup: 1012
   capabilities:
     drop:
     - ALL
+
+## @param securityContext Default security options to run vault as read only container without privilege escalation
+securityContext: {}
 ## @param dnsConfig Pod DNS options
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config
 dnsConfig: {}
@@ -258,8 +276,8 @@ storage:
   ##
   data:
     name: "vaultwarden-data"
-    size: "15Gi"
-    class: "nfs-client"
+    size: "2Gi"
+    class: "longhorn"
     path: "/data"
     keepPvc: true
     accessMode: "ReadWriteOnce"
@@ -268,8 +286,8 @@ storage:
   ##
   attachments:
     name: "vaultwarden-files"
-    size: "30Gi"
-    class: "nfs-client"
+    size: "2Gi"
+    class: "longhorn"
     path: /files
     keepPvc: true
     accessMode: "ReadWriteOnce"
@@ -306,7 +324,7 @@ database:
   uriOverride: ""
   ## @param database.existingSecret Name of an existing secret containing the database URI
   ##
-  existingSecret: "vaultwarden-secret"
+  existingSecret: "vaultwarden"
   ## @param database.existingSecretKey Key in the existing secret
   ##
   existingSecretKey: "DATABASE_URL"
@@ -529,7 +547,7 @@ adminToken:
   ## @param adminToken.existingSecret Specify an existing Kubernetes secret containing the admin token. Also set adminToken.existingSecretKey.
   ## Example: admincreds_secret
   ##
-  existingSecret: "vaultwarden-secret"
+  existingSecret: "vaultwarden"
   ## @param adminToken.existingSecretKey When using adminToken.existingSecret, specify the key containing the token.
   ## Example: ADMIN_TOKEN
   ##
@@ -614,7 +632,7 @@ duo:
 smtp:
   ## @param smtp.existingSecret Name of an existing secret containing the SMTP username and password. Also set smtp.username.existingSecretKey and smtp.password.existingSecretKey.
   ##
-  existingSecret: "vaultwarden-secret"
+  existingSecret: "vaultwarden"
   ## @param smtp.host SMTP host
   ##
   host: "smtp.gmail.com"

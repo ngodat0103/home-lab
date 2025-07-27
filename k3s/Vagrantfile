@@ -13,7 +13,8 @@ Vagrant.configure("2") do |config|
  master.vm.box_version = "2506.0.0"
  master.vm.provision "shell", path: "master.sh"
  master.vm.provider "virtualbox" do |vb| 
- vb.memory = 4096 
+ vb.memory = 8096 
+ vb.cpus = 4
 end 
  end
 
@@ -25,8 +26,7 @@ end
  worker1.vm.box_version = "2506.0.0"
  worker1.vm.provision "shell", path: "worker.sh"
  worker1.vm.provider "virtualbox" do |vb|
- vb.memory = 8096
- vb.cpus = 4
+ vb.memory = 2048
 end
  end
 
@@ -37,5 +37,9 @@ end
  worker2.vm.hostname = "worker2"
  worker2.vm.box_version = "2506.0.0"
  worker2.vm.provision "shell", path: "worker.sh"
+ worker2.vm.provider "virtualbox" do |vb|
+ vb.memory = 2048
+end
  end
+ 
 end

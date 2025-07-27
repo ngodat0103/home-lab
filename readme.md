@@ -1,67 +1,58 @@
 # Home Lab
 
-This repository contains the configuration for my personal home lab. It's a mono-repo for managing infrastructure, applications, and services using a variety of tools. This project is currently in the process of migrating services from Ansible to a Kubernetes-based setup using GitOps. It also serves as a safe and practical playground for me to learn and explore new concepts in the world of DevOps and infrastructure management.
+Personal homelab for learning **production-grade Kubernetes deployment practices** before applying to family home server. Migrated from Ansible to **K3s + GitOps** for cloud-native infrastructure management.
 
-## Overview
+## Objective
 
-The goal of this project is to automate the setup and management of my home lab environment. This includes:
--   Provisioning virtual machines.
--   Configuring the operating system and services.
--   Deploying applications using containers and orchestration.
--   Managing DNS and network configurations.
+Learn and validate production best practices for:
+- K3s cluster management and GitOps workflows
+- High-availability application deployment
+- Monitoring, alerting, and backup strategies
+- Security and secret management
+- Storage and networking solutions
 
-## Technologies
+**Goal**: Apply validated configurations to production home server.
 
-This project uses the following technologies:
+## Tech Stack
 
--   **Infrastructure as Code:**
-    -   [Terraform](httpss://www.terraform.io/): For provisioning virtual machines on KVM (**Deprecated**) and managing Cloudflare DNS.
-    -   [Vagrant](httpss://www.vagrantup.com/): For creating development environments.
--   **Configuration Management:**
-    -   [Ansible](httpss://www.ansible.com/): For configuring the base system, installing software, and managing services.
--   **Containerization & Orchestration:**
-    -   [Docker](httpss://www.docker.com/): For running containerized applications.
-    -   [Kubernetes (K3s)](httpss://k3s.io/): For container orchestration.
-    -   [ArgoCD](httpss://argo-cd.readthedocs.io/en/stable/): For GitOps and continuous deployment to Kubernetes.
--   **Monitoring & Observation:**
-    -   [Prometheus](httpss://prometheus.io/): For metrics and alerting.
-    -   [Grafana](httpss://grafana.com/): For visualization and dashboards.
-    -   [Alloy](httpss://grafana.com/docs/alloy/latest/): For collecting telemetry data.
+**Infrastructure**: Vagrant, K3s, Flannel CNI, VirtualBox  
+**GitOps**: ArgoCD, self-healing, automated sync  
+**Storage**: Longhorn, NFS external provisioner  
+**Networking**: Traefik ingress, SSL termination  
+**Security**: Sealed Secrets, encrypted secret management  
+**Monitoring**: Kube Prometheus Stack, Grafana, AlertManager  
+**DNS**: Terraform + Cloudflare  
+**Legacy**: Ansible (deprecated), Docker standalone (migrating)
 
-## Directory Structure
+## Structure
 
 ```
-.
-├── ansible/            # Ansible playbooks for configuration management
-├── k3s/                # Kubernetes (K3s) cluster setup and ArgoCD applications
-├── tf/                 # Terraform configurations for infrastructure provisioning
-└── vagrant-template/   # Vagrant template for development environments
+├── k3s/                # 🚀 Primary: K3s + GitOps applications
+├── ansible/            # Legacy: Ansible playbooks (deprecated)
+├── tf/                 # Terraform: Cloudflare DNS
+└── common-stuff/       # Shared utilities and scripts
 ```
 
-## Deployed Services
+## Status
 
-Here are some of the services running in the home lab:
+**✅ Lab Ready**: K3s cluster, ArgoCD GitOps, Traefik ingress, Longhorn storage, Sealed Secrets  
+**🚧 Learning**: Monitoring stack, alerting rules, production patterns  
+**🎯 Next**: Validate production-grade configurations for family server
 
--   **GitLab:** Self-hosted Git repository manager.
--   **Vaultwarden:** Self-hosted password manager (Bitwarden compatible).
--   **Traefik:** Reverse proxy and load balancer.
--   **qBittorrent:** BitTorrent client.
--   **MinIO:** S3 compatible object storage.
--   **PostgreSQL:** Relational database.
--   **Redis:** In-memory data store.
--   **Prometheus & Grafana:** Monitoring and observability stack.
+## Applications
 
-## Getting Started
+**✅ K3s Deployed**: Vaultwarden, qBittorrent, PostgreSQL, Traefik, ArgoCD  
+**� Migrating**: GitLab, MinIO, Redis, Nextcloud
 
-To get started with this project, you will need to have the following tools installed:
--   Terraform
--   Ansible
--   Vagrant
--   kubectl
--   helm
+## Quick Start
 
-The setup is specific to my environment, but you can adapt it to your needs.
+**Requirements**: Vagrant, VirtualBox, kubectl, helm
 
-## License
+```bash
+cd k3s/
+./start-cluster.sh     # Deploy 4-node K3s + ArgoCD
+./shutdown-cluster.sh  # Graceful shutdown + volume detach
+```
 
-This project is licensed under the MIT License.
+**Cluster**: 1 master + 2 workers + 1 NFS server (192.168.57.0/24)  
+**Purpose**: Learning lab to validate patterns before production home server

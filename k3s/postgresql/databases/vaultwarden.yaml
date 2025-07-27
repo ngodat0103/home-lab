@@ -1,10 +1,12 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: gitlab
+  name: vaultwarden
   namespace: database
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   cluster:
     name: "postgresql"
-  name: gitlabhq_production
-  owner: gitlab
+  name: vaultwarden
+  owner: "vaultwarden"

@@ -33,4 +33,7 @@ echo "alias kns=\"kubectl config set-context --current --namespace \"" >> /root/
 echo "alias kgp=\"kubectl get pod\"" >>/root/.bashrc
 echo "alias kl=\"kubectl logs -f \"" >> /root/.bashrc
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
-KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade --install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=192.168.57.13 --set nfs.path=/nfs/k3s/data --set storageClass.reclaimPolicy=Retain -n kube-system
+KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade --install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=192.168.57.13 --set nfs.path=/nfs/k3s/data/retain --set storageClass.reclaimPolicy=Retain -n kube-system
+cp /etc/rancher/k3s/k3s.yaml /vagrant/k3s.yaml
+cd /vagrant
+sed -i 's|server: https://127.0.0.1:6443|server: https://192.168.57.10:6443|' k3s.yaml

@@ -6,6 +6,25 @@ metadata:
 spec:
   #docs: https://github.com/k3s-io/k3s-charts/blob/main/charts/traefik/34.2.1%2Bup34.2.0/values.yaml
   valuesContent: |-
+    deployment:
+     initContainers:
+      - name: chmod-acme
+        image: busybox
+        command:
+         - sh
+         - -c
+         - |
+          touch /data/acme.json
+          chmod 600 /data/acme.json
+        volumeMounts:
+         - name: data
+           mountPath: /data
+    podSecurityContext:
+      runAsGroup: 65532
+      runAsNonRoot: true
+      runAsUser: 65532
+      fsGroup: 65532
+      fsGroupChangePolicy: "Always"
     ports:
      web:
       redirections:
@@ -21,7 +40,7 @@ spec:
       existingClaim: ""
       accessMode: ReadWriteOnce
       size: 256Mi
-      storageClass: "nfs-client"
+      storageClass: "longhorn"
       volumeName: ""
       path: /data
       annotations: {}

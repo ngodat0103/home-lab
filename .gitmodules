@@ -4,3 +4,6 @@
 [submodule "vagrant-template"]
 	path = vagrant-template
 	url = https://github.com/ngodat0103/vagrant-template.git
+[submodule "common-stuff"]
+	path = common-stuff
+	url = https://github.com/ngodat0103/common-stuff.git

@@ -1,0 +1,25 @@
+apiVersion: "argoproj.io/v1alpha1"
+kind: "Application"
+metadata:
+  namespace: argocd
+  name: nextcloud-prod
+spec:
+  revisionHistoryLimit: 2
+  syncPolicy:
+    automated:
+      enabled: true
+      selfHeal: true
+  project: default
+  destination:
+    namespace: nextcloud
+    name: in-cluster
+  sources:
+  - repoURL: https://nextcloud.github.io/helm/
+    chart: nextcloud
+    helm:
+      valueFiles:
+      - "$config/k3s/argocd-app/nextcloud/values.yaml"
+    targetRevision: "7.0.0"
+  - repoURL: "https://github.com/ngodat0103/home-lab.git"
+    targetRevision: "datnvm/argocd-dev"
+    ref: "config"
