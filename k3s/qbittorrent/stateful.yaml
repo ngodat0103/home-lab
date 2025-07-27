@@ -15,14 +15,14 @@ spec:
       labels:
         app: qbittorrent
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: "true"
       volumes:
       - name: config-volume
         persistentVolumeClaim:
           claimName: qbittorrent-config
       - name: shared-volume
-        nfs:
-          server: 192.168.57.13
-          path: /nfs/k3s/data/retain/shared-volume
+        hostpath: /shared-volume
       containers:
       - name: qbittorrent
         image: "linuxserver/qbittorrent:5.1.2@sha256:d6aebe87050274db1e80b54ed8be5684836d57698fbc840e29df24ef0471cf12"

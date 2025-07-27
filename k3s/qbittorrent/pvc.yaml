@@ -4,8 +4,8 @@ metadata:
   name: qbittorrent-config
   namespace: qbittorrent
 spec:
-  storageClassName: "nfs-client"
+  storageClassName: "longhorn"
   accessModes: [ "ReadWriteOnce" ]
   resources:
     requests:
-      storage: 10Mi
+      storage: 5Mi

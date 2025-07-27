@@ -9,7 +9,7 @@ spec:
     automated:
       enabled: true
       selfHeal: true
-      prune: false
+      prune: true
   destination:
     namespace: "database"
     name: "in-cluster"
