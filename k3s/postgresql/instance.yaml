@@ -9,7 +9,7 @@ spec:
   imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
   affinity:
     nodeSelector:
-      k3s.io/hostname: "master-node"
+      node-role.kubernetes.io/control-plane: "true"
   # According to requirement of Gitlab
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
