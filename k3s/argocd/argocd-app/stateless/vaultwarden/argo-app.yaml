@@ -5,6 +5,11 @@ metadata:
   namespace: argocd
 spec:
   project: "default"
+  syncPolicy:
+    automated:
+      enabled: true
+      selfHeal: true
+      prune: true
   destination:
     namespace: "vaultwarden"
     name: "in-cluster"

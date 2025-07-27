@@ -306,7 +306,7 @@ database:
   uriOverride: ""
   ## @param database.existingSecret Name of an existing secret containing the database URI
   ##
-  existingSecret: "vaultwarden-secret"
+  existingSecret: "vaultwarden"
   ## @param database.existingSecretKey Key in the existing secret
   ##
   existingSecretKey: "DATABASE_URL"
@@ -529,7 +529,7 @@ adminToken:
   ## @param adminToken.existingSecret Specify an existing Kubernetes secret containing the admin token. Also set adminToken.existingSecretKey.
   ## Example: admincreds_secret
   ##
-  existingSecret: "vaultwarden-secret"
+  existingSecret: "vaultwarden"
   ## @param adminToken.existingSecretKey When using adminToken.existingSecret, specify the key containing the token.
   ## Example: ADMIN_TOKEN
   ##
@@ -614,7 +614,7 @@ duo:
 smtp:
   ## @param smtp.existingSecret Name of an existing secret containing the SMTP username and password. Also set smtp.username.existingSecretKey and smtp.password.existingSecretKey.
   ##
-  existingSecret: "vaultwarden-secret"
+  existingSecret: "vaultwarden"
   ## @param smtp.host SMTP host
   ##
   host: "smtp.gmail.com"
