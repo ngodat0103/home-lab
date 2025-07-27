@@ -11,10 +11,13 @@ spec:
   sources:
   - helm:
       valueFiles:
-      - "$config/k3s/argocd-app/vaultwarden/values.yaml"
+      - "$config/k3s/argocd/argocd-app/vaultwarden/values.yaml"
     repoURL: "https://guerzon.github.io/vaultwarden"
     chart: "vaultwarden"
     targetRevision: "0.32.1"
   - repoURL: "https://github.com/ngodat0103/home-lab.git"
     targetRevision: "datnvm/argocd-dev"
     ref: "config"
+  - repoURL: "https://github.com/ngodat0103/home-lab.git"
+    targetRevision: "datnvm/argocd-dev"
+    path: "k3s/vaultwarden"
