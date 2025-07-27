@@ -15,7 +15,13 @@ spec:
   destination:
     name: "in-cluster"
     namespace: "sealed-secrets"
-  source:
-    repoURL: "https://bitnami-labs.github.io/sealed-secrets"
+  sources:
+  - repoURL: "https://bitnami-labs.github.io/sealed-secrets"
     targetRevision: "2.17.2"
     chart: "sealed-secrets"
+    helm:
+      valueFiles:
+      - "$config/k3s/argocd/argocd-app/stateless/sealed-secrets/values.yaml"
+  - repoURL: "https://github.com/ngodat0103/home-lab.git"
+    targetRevision: "datnvm/argocd-dev"
+    ref: "config"
