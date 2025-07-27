@@ -199,13 +199,19 @@ runtimeClassName: ""
 ## @param affinity [object] Affinity for Sealed Secret pods assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ##
-affinity:
-  preferredDuringSchedulingIgnoredDuringExecution:
-    nodeSelector:
-      cloud-uit: "true"
-    ## @param nodeSelector [object] Node labels for Sealed Secret pods assignment
-    ## ref: https://kubernetes.io/docs/user-guide/node-selection/
-    ##
+aaffinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: cloud-uit
+          operator: In
+          values:
+          - "true"
+
+## @param nodeSelector [object] Node labels for Sealed Secret pods assignment
+## ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
 nodeSelector: {}
 ## @param tolerations [array] Tolerations for Sealed Secret pods assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
