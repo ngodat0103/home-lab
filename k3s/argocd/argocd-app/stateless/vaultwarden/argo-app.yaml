@@ -4,6 +4,7 @@ metadata:
   name: vaultwarden-prod
   namespace: argocd
 spec:
+  revisionHistoryLimit: 2
   project: "default"
   syncPolicy:
     automated:

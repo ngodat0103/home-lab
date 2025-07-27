@@ -86,3 +86,6 @@ rsa_key.pem
 secret.yaml
 data
 k3s.yaml
+secrets.yaml
+database_url.txt
+*.pem
