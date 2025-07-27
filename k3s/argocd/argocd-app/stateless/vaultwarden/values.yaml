@@ -258,8 +258,8 @@ storage:
   ##
   data:
     name: "vaultwarden-data"
-    size: "15Gi"
-    class: "nfs-client"
+    size: "2Gi"
+    class: "longhorn"
     path: "/data"
     keepPvc: true
     accessMode: "ReadWriteOnce"
@@ -268,8 +268,8 @@ storage:
   ##
   attachments:
     name: "vaultwarden-files"
-    size: "30Gi"
-    class: "nfs-client"
+    size: "2Gi"
+    class: "longhorn"
     path: /files
     keepPvc: true
     accessMode: "ReadWriteOnce"
