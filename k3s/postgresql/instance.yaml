@@ -14,7 +14,7 @@ spec:
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
     requests:
-      memory: 1Gi
+      memory: 4Gi
     limits:
       memory: 8Gi
   postgresql:
