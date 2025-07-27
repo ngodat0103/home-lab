@@ -100,16 +100,17 @@ sidecars:
 
 priorityClassName: ""
 
-nodeSelector: {} # memory: medium
+nodeSelector: {}
 
+# memory: medium
 storageSpec:
   volumeClaimTemplate:
     spec:
-      storageClassName: "nfs-client"
+      storageClassName: "longhorn"
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 1Gi
+          storage: 10Gi
   #   selector: {}
 
 podSecurityContext:
