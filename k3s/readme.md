@@ -8,36 +8,64 @@ This repository contains a personal lab environment to **practice, test, and val
 
 ## Key Features
 
-- **Lightweight Kubernetes**: Utilizes [K3s](https://k3s.io/) for a minimal, easy-to-manage Kubernetes distribution.
-- **Infrastructure as Code**: Uses [Vagrant](https://www.vagrantup.com/) to define and provision the virtualized lab environment.
-- **GitOps**: Employs [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) for declarative, Git-based management of applications and configurations.
-- **Ingress Controller**: Configured [Traefik](https://traefik.io/traefik/) for ingress and network management.
-- **Monitoring**: Integrates the [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) for a comprehensive monitoring solution.
+- **Lightweight Kubernetes**: K3s cluster with Flannel CNI, NFS storage provisioner
+- **Infrastructure as Code**: Vagrant + VirtualBox (4-node cluster: 1 master, 2 workers, 1 NFS server)
+- **GitOps**: ArgoCD with self-healing, automated sync from Git repository
+- **Storage**: Longhorn distributed storage + NFS external provisioner
+- **Ingress**: Traefik with SSL termination and middleware
+- **Security**: Sealed Secrets for secret management
+- **Monitoring**: Kube Prometheus Stack (Prometheus, Grafana, AlertManager)
+- **Applications**: PostgreSQL, Redis, MinIO, Nextcloud, qBittorrent, Vaultwarden
 
 ---
 
-## Current Migration Plan
+## Current Migration Status
 
-### 1. PostgreSQL Database
-- [X] Configure instance
-- [X] Set up database schemas
-- [X] Migrate data
-- [ ] Implement backup and restore procedures
+### Infrastructure ✅
+- [X] 4-node Vagrant cluster (1 master + 2 workers + NFS server)
+- [X] K3s with Flannel CNI and Helm integration
+- [X] NFS external provisioner for persistent storage
+- [X] Longhorn distributed storage system
 
-### 2. Vaultwarden
-- [X] Deploy application
-- [X] Migrate existing data
-- [X] Set up automated backups using Kubernetes cronjob
+### Core Services ✅
+- [X] ArgoCD GitOps with self-healing enabled
+- [X] Traefik ingress controller with SSL
+- [X] Sealed Secrets for secret management
+- [ ] Kube Prometheus Stack monitoring
+- [ ] ArgoCD notification system (Slack/Discord/email integration)
+- [ ] Grafana alerting rules for critical issues
 
-### 3. GitLab
-- [ ] Configure GitLab instance
-- [ ] Migrate repositories and data
-- [ ] Implement backup and restore strategy
+### Applications
+- [X] PostgreSQL database
+- [X] Vaultwarden password manager with automated backups
+- [X] qBittorrent torrent client
+- [ ] Redis cache server
+- [ ] MinIO object storage
+- [ ] Nextcloud file sharing platform
 
-### 4. Monitoring
-- [X] Deploy Kube Prometheus Stack
-- [ ] Configure dashboards and alerts
-- [ ] Set up persistent storage for metrics
+### Monitoring & Observability ✅
+- [ ] Prometheus metrics collection
+- [ ] Grafana dashboards
+- [ ] AlertManager notifications
+- [ ] Persistent storage for metrics
+- [ ] Critical alert rules (pod failures, resource exhaustion, service downtime)
+- [ ] ArgoCD sync failure notifications
+- [ ] Multi-channel alerting (Discord, email)
+
+---
+
+## Planned Features
+
+### Notification & Alerting System
+- **ArgoCD Notifications**: Configure webhook/email notifications for deployment failures, sync errors, and health status changes
+- **Grafana Alert Rules**: Critical monitoring for:
+  - Pod crash loops and restart counts
+  - Node resource exhaustion (CPU, memory, disk)
+  - Service endpoint failures
+  - Persistent volume issues
+  - ArgoCD application out-of-sync alerts
+- **Multi-Channel Delivery**: Slack, Discord, email integration for different severity levels
+- **Alert Routing**: Critical alerts to immediate channels, warnings to daily digest
 
 ---
 
@@ -45,15 +73,44 @@ This repository contains a personal lab environment to **practice, test, and val
 
 ```
 .
-├── argocd-app/       # ArgoCD application definitions
-├── argocd-crd/         # ArgoCD Helm chart and CRDs
-├── postgresql/       # PostgreSQL instance and database configurations
-├── traefik/          # Traefik ingress configuration
-├── master.sh         # Script to provision the master node
-├── worker.sh         # Script to provision worker nodes
-├── Vagrantfile       # Vagrant configuration for the lab environment
-└── readme.md         # This file
+├── argocd/                    # ArgoCD configurations
+│   ├── argocd-app/           # Application definitions
+│   │   ├── daemon/           # DaemonSet apps (kube-prometheus-stack)
+│   │   ├── stateful/         # Stateful apps (PostgreSQL, Redis, MinIO, etc.)
+│   │   └── stateless/        # Stateless apps (Traefik, Vaultwarden, Sealed Secrets)
+│   ├── argocd-crd/          # ArgoCD CRDs and Helm charts
+│   └── projects/            # ArgoCD project definitions
+├── postgresql/              # PostgreSQL configurations
+├── qbittorrent/            # qBittorrent torrent client
+├── traefik/                # Traefik ingress controller
+├── vaultwarden/            # Vaultwarden password manager
+├── master.sh               # K3s master node setup (swap disable, NFS, Helm, k3s server)
+├── worker.sh               # K3s worker node setup (swap disable, NFS, k3s agent)
+├── nfs-server-setup.sh     # NFS server configuration
+├── start-cluster.sh        # Cluster startup + ArgoCD self-healing
+├── shutdown-cluster.sh     # Graceful shutdown with Longhorn volume detach
+├── Vagrantfile            # 4-node cluster definition
+└── k3s.yaml               # Kubeconfig file
 ```
+
+## Scripts & Automation
+
+### Cluster Management
+- `start-cluster.sh`: Vagrant up + ArgoCD self-healing activation
+- `shutdown-cluster.sh`: Graceful shutdown with Longhorn volume detachment
+- `master.sh`: Swap disable, NFS client, Helm install, K3s server, NFS provisioner setup
+- `worker.sh`: Swap disable, NFS client, K3s agent join
+- `nfs-server-setup.sh`: NFS kernel server setup with shared volumes
+
+### Key Technologies
+- **Vagrant**: Multi-machine virtualization (Ubuntu 22.04 LTS)
+- **K3s**: Lightweight Kubernetes with Flannel CNI
+- **Storage**: Longhorn + NFS external provisioner (retain/delete policies)
+- **GitOps**: ArgoCD auto-sync with self-healing from external script
+- **Networking**: Private network (192.168.57.0/24), Traefik ingress
+- **Secrets**: Sealed Secrets controller for encrypted secret management
+- **Alerting**: Prometheus AlertManager + Grafana rules (planned)
+- **Notifications**: ArgoCD webhooks + multi-channel delivery (planned)
 
 ---
 
@@ -61,8 +118,10 @@ This repository contains a personal lab environment to **practice, test, and val
 
 This project uses Vagrant to create a local K3s cluster and ArgoCD to manage the applications in a GitOps fashion.
 
-1.  **Infrastructure Provisioning**: The `Vagrantfile` defines a multi-machine setup with a K3s master and several worker nodes. Running `vagrant up` will create these virtual machines, install K3s, and set up the basic cluster infrastructure.
+1.  **Infrastructure Provisioning**: The `Vagrantfile` defines a 4-machine setup (1 master, 2 workers, 1 NFS server). The `start-cluster.sh` script runs `vagrant up` and enables ArgoCD self-healing.
 
-2.  **GitOps with ArgoCD**: ArgoCD is installed on the cluster and configured to monitor this Git repository. Any changes pushed to the `main` branch that affect the Kubernetes manifests in the `argocd-app/` directory will be automatically detected by ArgoCD.
+2.  **GitOps with ArgoCD**: ArgoCD monitors this Git repository with automatic sync. Applications are organized by type (daemon/stateful/stateless) and deployed based on manifest changes.
 
-3.  **Application Deployment**: ArgoCD synchronizes the state of the applications defined in the repository with the state of the cluster. This means it will automatically deploy or update applications like Vaultwarden, PostgreSQL, and others whenever the corresponding manifests are updated in Git.
+3.  **Storage Strategy**: Combines Longhorn distributed storage with NFS external provisioner. Longhorn handles block storage while NFS provides shared filesystem access.
+
+4.  **Application Deployment**: ArgoCD synchronizes applications from the `argocd-app/` directory structure, automatically deploying PostgreSQL, Vaultwarden, qBittorrent, monitoring stack, and other services.
