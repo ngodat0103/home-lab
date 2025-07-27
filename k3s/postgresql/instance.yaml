@@ -3,11 +3,13 @@ kind: Cluster
 metadata:
   name: postgresql
   namespace: database
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
   affinity:
     nodeSelector:
-      k3s.io.hostname: "master-node"
+      k3s.io/hostname: "master-node"
   # According to requirement of Gitlab
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
@@ -29,22 +31,22 @@ spec:
       login: true
       superuser: false
       passwordSecret:
-        name: "vaultwarden-db-secret"
+        name: "vaultwarden-db"
     - name: gitlab
       ensure: present
       comment: "Role for Gitlab"
       login: true
       superuser: false
       passwordSecret:
-        name: "gitlab-db-secret"
+        name: gitlab-db
     - name: nextcloud
       comment: Role for nextcloud
       login: true
       superuser: false
       ensure: present
       passwordSecret:
-        name: nextcloud-db-secret
+        name: nextcloud-db
   instances: 1
   storage:
-    size: 40Gi
+    size: 60Gi
     storageClass: "local-path"

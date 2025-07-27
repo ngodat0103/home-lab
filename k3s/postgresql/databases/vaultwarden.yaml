@@ -3,6 +3,8 @@ kind: Database
 metadata:
   name: vaultwarden
   namespace: database
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   cluster:
     name: "postgresql"
