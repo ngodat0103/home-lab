@@ -17,7 +17,7 @@ deploymentAnnotations: {}
 deploymentLabels: {}
 
 # Number of replicas to be deployed
-replicaCount: 2
+replicaCount: 1
 
 ## Allowing use of ingress controllers
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
@@ -274,19 +274,19 @@ nextcloud:
   # to NextCloud pods in Kubernetes. This can then be configured in External Storage
   extraVolumes:
   - name: shared-volume
-    nfs:
-      server: "192.168.57.13"
-      path: /nfs/k3s/data/retain/shared-volume
+    hostPath:
+      type: Directory
+      path: /shared-volume
   extraVolumeMounts:
   - name: shared-volume
     mountPath: /shared-volume
   # Set securityContext parameters for the nextcloud CONTAINER only (will not affect nginx container).
   # For example, you may need to define runAsNonRoot directive
-  securityContext: []
-    # runAsUser: 1015
-    # runAsGroup: 1015
-    # runAsNonRoot: true
-    # readOnlyRootFilesystem: false
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    readOnlyRootFilesystem: false
     # Set securityContext parameters for the entire pod. For example, you may need to define runAsNonRoot directive
 
   podSecurityContext: {}
@@ -382,7 +382,7 @@ externalDatabase:
   ## Use a existing secret
   existingSecret:
     enabled: true
-    secretName: nextcloud-secret
+    secretName: nextcloud-secret-db
     usernameKey: username
     passwordKey: password
     # hostKey: db-hostname-or-ip
@@ -392,154 +392,6 @@ externalDatabase:
     ## MariaDB chart configuration
     ## ref: https://github.com/bitnami/charts/tree/main/bitnami/mariadb
     ##
-mariadb:
-  ## Whether to deploy a mariadb server from the bitnami mariab db helm chart
-  # to satisfy the applications database requirements. if you want to deploy this bitnami mariadb, set this and externalDatabase to true
-  # To use an ALREADY DEPLOYED mariadb database, set this to false and configure the externalDatabase parameters
-  enabled: false
-
-  # see: https://github.com/bitnami/charts/tree/main/bitnami/mariadb#global-parameters
-  global:
-    # overwrites the primary.persistence.storageClass value
-    defaultStorageClass: ""
-
-  auth:
-    database: nextcloud
-    username: nextcloud
-    password: changeme
-    # Use existing secret (auth.rootPassword, auth.password, and auth.replicationPassword will be ignored).
-    # secret must contain the keys mariadb-root-password, mariadb-replication-password and mariadb-password
-    existingSecret: ""
-
-  architecture: standalone
-
-  ## Enable persistence using Persistent Volume Claims
-  ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
-  ##
-  primary:
-    persistence:
-      enabled: false
-      # Use an existing Persistent Volume Claim (must be created ahead of time)
-      existingClaim: ""
-      storageClass: ""
-      accessMode: ReadWriteOnce
-      size: 8Gi
-
-##
-## PostgreSQL chart configuration
-## for more options see https://github.com/bitnami/charts/tree/main/bitnami/postgresql
-##
-postgresql:
-  enabled: false
-  global:
-    postgresql:
-      # global.postgresql.auth overrides postgresql.auth
-      auth:
-        username: nextcloud
-        password: changeme
-        database: nextcloud
-        # Name of existing secret to use for PostgreSQL credentials.
-        # auth.postgresPassword, auth.password, and auth.replicationPassword will be ignored and picked up from this secret.
-        # secret might also contains the key ldap-password if LDAP is enabled.
-        # ldap.bind_password will be ignored and picked from this secret in this case.
-        existingSecret: ""
-        # Names of keys in existing secret to use for PostgreSQL credentials
-        secretKeys:
-          adminPasswordKey: ""
-          userPasswordKey: ""
-          replicationPasswordKey: ""
-  primary:
-    persistence:
-      enabled: false
-      # Use an existing Persistent Volume Claim (must be created ahead of time)
-      # existingClaim: ""
-      # storageClass: ""
-
-      ##
-      ## Redis chart configuration
-      ## for more options see https://github.com/bitnami/charts/tree/main/bitnami/redis
-      ##
-
-redis:
-  enabled: false
-  auth:
-    enabled: true
-    password: 'changeme'
-    # name of an existing secret with Redis® credentials (instead of auth.password), must be created ahead of time
-    existingSecret: ""
-    # Password key to be retrieved from existing secret
-    existingSecretPasswordKey: ""
-  # Since Redis is used for caching only, you might want to use a storageClass with different reclaim policy and backup settings
-  global:
-    storageClass: ""
-  master:
-    persistence:
-      enabled: true
-  replica:
-    persistence:
-      enabled: true
-
-##
-## Collabora chart configuration
-## for more options see https://github.com/CollaboraOnline/online/tree/master/kubernetes/helm/collabora-online
-##
-collabora:
-  enabled: false
-
-  autoscaling:
-    # enable autocaling, please check collabora README.md first
-    enabled: false
-
-  collabora:
-    ## HTTPS nextcloud domain, if needed
-    aliasgroups: []
-    #   - host: "https://nextcloud.domain:443"
-
-    # set extra parameters for collabora
-    # you may need to add --o:ssl.termination=true
-    extra_params: --o:ssl.enable=false
-
-    ## Specify server_name when the hostname is not reachable directly for
-    # example behind reverse-proxy. example: collabora.domain
-    server_name: null
-
-    existingSecret:
-      # set to true to to get collabora admin credentials from an existin secret
-      # if set, ignores collabora.collabora.username and password
-      enabled: false
-      # name of existing Kubernetes Secret with collboara admin credentials
-      secretName: ""
-      usernameKey: "username"
-      passwordKey: "password"
-
-    # setup admin login credentials, these are ignored if
-    # collabora.collabora.existingSecret.enabled=true
-    password: examplepass
-    username: admin
-
-  # setup ingress
-  ingress:
-    # enable ingress for collabora online
-    enabled: false
-    className: ""
-    # please check collabora values.yaml for nginx/haproxy annotations examples
-    annotations: {}
-    hosts:
-    - host: chart-example.local
-      paths:
-      - path: /
-        pathType: ImplementationSpecific
-    tls: []
-    #  - secretName: collabora-ingress-tls
-    #    hosts:
-    #      - collabora.domain
-
-    # see collabora helm README.md for recommended values
-  resources: {}
-
-## Cronjob to execute Nextcloud background tasks
-## ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/background_jobs_configuration.html#cron
-##
 cronjob:
   enabled: false
 
@@ -600,10 +452,10 @@ persistence:
     enabled: true
     #subPath:
     annotations: {}
-    storageClass: "nfs-client"
+    storageClass: "longhorn"
     # existingClaim:
-    accessMode: ReadWriteMany
-    size: 300Gi
+    accessMode: ReadWriteOnce
+    size: 100Gi
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -651,7 +503,8 @@ hpa:
   minPods: 1
   maxPods: 10
 
-nodeSelector: {}
+nodeSelector:
+  node-role.kubernetes.io/control-plane: "true"
 
 tolerations: []
 
