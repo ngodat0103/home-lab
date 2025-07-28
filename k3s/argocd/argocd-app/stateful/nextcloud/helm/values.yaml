@@ -282,12 +282,7 @@ nextcloud:
     mountPath: /shared-volume
   # Set securityContext parameters for the nextcloud CONTAINER only (will not affect nginx container).
   # For example, you may need to define runAsNonRoot directive
-  securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    runAsNonRoot: true
-    readOnlyRootFilesystem: false
-    # Set securityContext parameters for the entire pod. For example, you may need to define runAsNonRoot directive
+  securityContext: {} # Set securityContext parameters for the entire pod. For example, you may need to define runAsNonRoot directive
 
   podSecurityContext: {}
   # Settings for the MariaDB init container
