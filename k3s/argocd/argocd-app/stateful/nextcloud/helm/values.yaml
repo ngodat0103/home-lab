@@ -382,7 +382,7 @@ externalDatabase:
   ## Use a existing secret
   existingSecret:
     enabled: true
-    secretName: nextcloud-secret-db
+    secretName: nextcloud-db-secret
     usernameKey: username
     passwordKey: password
     # hostKey: db-hostname-or-ip
