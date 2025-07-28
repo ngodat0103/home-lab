@@ -455,7 +455,7 @@ persistence:
     storageClass: "longhorn"
     # existingClaim:
     accessMode: ReadWriteOnce
-    size: 100Gi
+    size: 30Gi
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
