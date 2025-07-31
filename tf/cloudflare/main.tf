@@ -10,7 +10,7 @@ terraform {
 locals {
   cloudflare_api_token = var.cloudflare_api_token
   ddns_content         = var.ddns_content
-  zone_id              = "0649c534ced1cb43ddc06d6a978b1dec"
+  zone_id              = "ab6606e8b3aad0b66008eb26f2dd3660"
   share_comment        = "Managed by Terraform"
   account_id           = "4c8ad4e9fa8213af3fd284bb97b68b5e"
 }
@@ -52,9 +52,9 @@ resource "null_resource" "download_uptimerobot_ips" {
 }
 
 
-# Need to import this resource from managed by cloudflare first
-## Example: 
-## terraform import cloudflare_ruleset.default zones/0649c534ced1cb43ddc06d6a978b1dec/6580faae48cc4419bbd3fde67dc58d40
+#Need to import this resource from managed by cloudflare first
+# Example: 
+# terraform import cloudflare_ruleset.default zones/ab6606e8b3aad0b66008eb26f2dd3660/cfe2f8797a314e5ba48192a7e7520bd0
 resource "cloudflare_ruleset" "default" {
   depends_on = [null_resource.download_uptimerobot_ips]
   kind       = "zone"
