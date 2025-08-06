@@ -39,6 +39,15 @@ resource "cloudflare_dns_record" "bitwarden_dnsRecord" {
   type    = "CNAME"
 }
 
+resource "cloudflare_dns_record" "nextcloud_dnsRecord" {
+  zone_id = local.zone_id
+  comment = local.share_comment
+  content = local.ddns_content
+  name    = "nextcloud"
+  proxied = true
+  ttl     = 1
+  type    = "CNAME"
+}
 
 
 ## Firewall

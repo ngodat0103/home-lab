@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: "traefik"
   rules:
-  - host: qbittorrent.ngodat0103.live
+  - host: qbittorrent.datrollout.dev
     http:
       paths:
       - path: /

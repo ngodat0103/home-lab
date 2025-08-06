@@ -437,7 +437,7 @@ ingress:
   ingressClassName: "traefik"
 
   # -- Hostname of the Layer 7 load balancer.
-  host: longhorn.ngodat0103.live
+  host: "longhorn.datrollout.dev"
 
   # -- Setting that allows you to enable TLS on ingress records.
   tls: false

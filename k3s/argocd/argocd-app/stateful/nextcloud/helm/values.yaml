@@ -77,7 +77,7 @@ phpClientHttpsFix:
   protocol: https
 
 nextcloud:
-  host: nextcloud.ngodat0103.live
+  host: nextcloud.datrollout.dev
   ## Use an existing secret
   existingSecret:
     enabled: true
@@ -94,7 +94,7 @@ nextcloud:
   datadir: /var/www/html/data
   persistence:
     subPath: # if set, we'll template this list to the NEXTCLOUD_TRUSTED_DOMAINS env var
-  trustedDomains: [ "nextcloud.ngodat0103.live" ]
+  trustedDomains: [ "nextcloud.datrollout.dev" ]
   ## SMTP configuration
   mail:
     enabled: false
