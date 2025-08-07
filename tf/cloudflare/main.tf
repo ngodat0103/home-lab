@@ -6,48 +6,35 @@ terraform {
     }
   }
 }
-
+provider "cloudflare" {
+  api_token = local.cloudflare_api_token
+}
 locals {
   cloudflare_api_token = var.cloudflare_api_token
-  ddns_content         = var.ddns_content
   zone_id              = "ab6606e8b3aad0b66008eb26f2dd3660"
   share_comment        = "Managed by Terraform"
   account_id           = "4c8ad4e9fa8213af3fd284bb97b68b5e"
 }
-
-provider "cloudflare" {
-  api_token = local.cloudflare_api_token
-}
-
-resource "cloudflare_dns_record" "gitlab_dnsRecord" {
+module "ddns_records"{
+  source = "git::https://github.com/ngodat0103/terraform-module.git//cloudflare/dns-records"
+  cloudflare_api_token = local.cloudflare_api_token
   zone_id = local.zone_id
-  comment = local.share_comment
-  content = local.ddns_content
-  name    = "gitlab"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
+  share_comment = local.share_comment
+  ddns_content = var.ddns_content
+  dns_records = {
+    nextcloud = {
+      type = "CNAME"
+    }
+    gitlab = {
+      type = "CNAME"
+    }
+    bitwarden = {
+      type = "CNAME"
+    }
+  }
 }
 
-resource "cloudflare_dns_record" "bitwarden_dnsRecord" {
-  zone_id = local.zone_id
-  comment = local.share_comment
-  content = local.ddns_content
-  name    = "bitwarden"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
 
-resource "cloudflare_dns_record" "nextcloud_dnsRecord" {
-  zone_id = local.zone_id
-  comment = local.share_comment
-  content = local.ddns_content
-  name    = "nextcloud"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
 
 
 ## Firewall

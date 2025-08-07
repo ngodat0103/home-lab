@@ -7,3 +7,6 @@
 [submodule "common-stuff"]
 	path = common-stuff
 	url = https://github.com/ngodat0103/common-stuff.git
+[submodule "tf/cloudflare/terraform-module"]
+	path = tf/cloudflare/terraform-module
+	url = https://github.com/ngodat0103/terraform-module.git
