@@ -36,3 +36,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 uptimerobot-ips.txt
+terraform-module
