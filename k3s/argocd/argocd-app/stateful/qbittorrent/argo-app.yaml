@@ -5,17 +5,18 @@ metadata:
   namespace: argocd
 spec:
   project: "default"
+  revisionHistoryLimit: 2
   syncPolicy:
     automated:
       enabled: true
       selfHeal: true
       prune: true
   destination:
-    namespace: "database"
+    namespace: "qbittorrent"
     name: "in-cluster"
   source:
     directory:
       recurse: false
     repoURL: "https://github.com/ngodat0103/home-lab.git"
     targetRevision: "datnvm/argocd-dev"
-    path: "k3s/qbittorrent"
+    path: "k3s/argocd/argocd-app/stateful/qbittorrent/raw-manifests"

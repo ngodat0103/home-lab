@@ -131,17 +131,9 @@ serviceAccount:
 ## @param podSecurityContext Pod security options
 ##
 podSecurityContext:
-  allowPrivilegeEscalation: false
-  privileged: false
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
   runAsGroup: 1012
   runAsUser: 1012
   fsGroup: 1012
-  capabilities:
-    drop:
-    - ALL
-
 ## @param securityContext Default security options to run vault as read only container without privilege escalation
 securityContext: {}
 ## @param dnsConfig Pod DNS options
@@ -402,7 +394,7 @@ eventsDayRetain: ""
 ## @param domain Domain name where the application is accessed
 ## Example: https://warden.contoso.com:8443
 ##
-domain: "https://bitwarden.ngodat0103.live"
+domain: "https://bitwarden.datrollout.dev"
 
 ## @param sendsAllowed Controls whether users are allowed to create Bitwarden Sends.
 ##
@@ -440,11 +432,11 @@ trashAutoDeleteDays: ""
 ## of any of the restrictions above
 ##
 ## If signupDomains is set, then the value of signupsAllowed is ignored
-signupsAllowed: true
+signupsAllowed: false
 
 ## @param signupsVerify Whether to require account verification for newly-registered users.
 ##
-signupsVerify: "true"
+signupsVerify: false
 
 ## @param signupDomains List of domain names for users allowed to register. For example:
 ## example.com,example.net,example.org.
@@ -755,7 +747,7 @@ ingress:
   tls: true
   ## @param ingress.hostname Hostname for the ingress.
   ##
-  hostname: "bitwarden.ngodat0103.live"
+  hostname: "bitwarden.datrollout.dev"
   ## @param ingress.additionalHostnames Additional hostnames for the ingress.
   ##
   additionalHostnames: []

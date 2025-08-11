@@ -32,7 +32,7 @@ This repository contains a personal lab environment to **practice, test, and val
 - [X] Traefik ingress controller with SSL
 - [X] Sealed Secrets for secret management
 - [ ] Kube Prometheus Stack monitoring
-- [ ] ArgoCD notification system (Slack/Discord/email integration)
+- [X] ArgoCD notification system (Discord webhook integration enabled)
 - [ ] Grafana alerting rules for critical issues
 
 ### Applications
@@ -57,14 +57,14 @@ This repository contains a personal lab environment to **practice, test, and val
 ## Planned Features
 
 ### Notification & Alerting System
-- **ArgoCD Notifications**: Configure webhook/email notifications for deployment failures, sync errors, and health status changes
+- **ArgoCD Notifications**: Webhook notifications for deployment failures, sync errors, and health status changes are now enabled via Discord integration. See `argocd-crd/values.yaml` for configuration details.
+- **Discord Webhook Integration**: ArgoCD notifications are delivered to a Discord channel using a webhook. Customize the Discord webhook URL in the ArgoCD notifications secret.
 - **Grafana Alert Rules**: Critical monitoring for:
   - Pod crash loops and restart counts
   - Node resource exhaustion (CPU, memory, disk)
   - Service endpoint failures
   - Persistent volume issues
   - ArgoCD application out-of-sync alerts
-- **Multi-Channel Delivery**: Slack, Discord, email integration for different severity levels
 - **Alert Routing**: Critical alerts to immediate channels, warnings to daily digest
 
 ---
@@ -110,7 +110,7 @@ This repository contains a personal lab environment to **practice, test, and val
 - **Networking**: Private network (192.168.57.0/24), Traefik ingress
 - **Secrets**: Sealed Secrets controller for encrypted secret management
 - **Alerting**: Prometheus AlertManager + Grafana rules (planned)
-- **Notifications**: ArgoCD webhooks + multi-channel delivery (planned)
+- **Notifications**: ArgoCD Discord webhook (enabled), multi-channel delivery (Slack/email planned)
 
 ---
 

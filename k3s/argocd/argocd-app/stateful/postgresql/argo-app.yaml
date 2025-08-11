@@ -7,8 +7,8 @@ spec:
   project: "default"
   syncPolicy:
     syncOptions:
-    - "ServerSideApply=True"
-    - "CreateNamespace=True"
+    - "ServerSideApply=true"
+    - "CreateNamespace=true"
     automated:
       enabled: true
       prune: true
@@ -29,4 +29,4 @@ spec:
       recurse: true
     repoURL: "https://github.com/ngodat0103/home-lab.git"
     targetRevision: "datnvm/argocd-dev"
-    path: "k3s/postgresql"
+    path: "k3s/argocd/argocd-app/stateful/postgresql/raw-manifests"

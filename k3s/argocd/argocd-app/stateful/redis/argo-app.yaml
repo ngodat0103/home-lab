@@ -11,6 +11,7 @@ spec:
       enabled: true
     syncOptions:
     - "ServerSideApply=true"
+    - "CreateNamespace=true"
   destination:
     namespace: "redis"
     name: "in-cluster"
@@ -22,7 +23,7 @@ spec:
     targetRevision: "0.16.5"
     chart: "redis"
     helm:
-      valueFiles: [ "$config/k3s/argocd-app/redis/redis-values.yaml" ]
+      valueFiles: [ "$config/k3s/argocd/argocd-app/stateful/redis/helm/redis-values.yaml" ]
   - repoURL: "https://github.com/ngodat0103/home-lab.git"
     targetRevision: "datnvm/argocd-dev"
     ref: "config"
