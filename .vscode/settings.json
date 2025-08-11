@@ -29,7 +29,8 @@
                 ],
                 "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/appproject_v1alpha1.json": [
                         "**/argocd/projects/*.yaml"
-                ]
+                ], 
+                "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/applicationset_v1alpha1.json": ["**/application-set.yaml"]
         },
         "ansible.python.interpreterPath": "/usr/bin/python3.12",
 }
