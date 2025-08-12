@@ -214,6 +214,11 @@ nextcloud:
   # Extra config files created in /var/www/html/config/
   # ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
   configs:
+    trused_proxied.config.php: |-
+      <?php
+       $CONFIG= array (
+       'trusted_proxies' =>  ['10.42.0.0/16']
+       );
     trusted_domains.config.php: |-
       <?php
       $CONFIG= array (
