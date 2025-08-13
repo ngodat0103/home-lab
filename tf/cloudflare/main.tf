@@ -72,6 +72,12 @@ module "personal_firewall" {
       description = "Block requests originating from outside Vietnam"
       enabled     = true
       expression  = "(ip.src.country ne \"VN\")"
+    },
+    {
+      action = "block"
+      description = "Block external access to /admin Vaultwarden"
+      enabled = true
+      expression = "(http.request.full_uri eq \"https://bitwarden.datrollout.dev/admin\")"
     }
   ]
 }
