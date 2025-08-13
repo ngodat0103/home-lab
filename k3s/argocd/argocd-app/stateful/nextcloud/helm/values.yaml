@@ -291,9 +291,29 @@ nextcloud:
     hostPath:
       type: Directory
       path: /shared-volume
+  - name: aerith-gdrive
+    persistentVolumeClaim:
+      claimName: aerith-gdrive-pvc
+  - name: karina-uit-gdrive
+    persistentVolumeClaim:
+      claimName: karina-uit-gdrive-pvc
+  - name: kirara-gdrive
+    persistentVolumeClaim:
+      claimName: kirara-gdrive-pvc
+  - name: sesshomaru-gdrive
+    persistentVolumeClaim:
+      claimName: sesshomaru-gdrive-pvc
   extraVolumeMounts:
   - name: shared-volume
     mountPath: /shared-volume
+  - name: aerith-gdrive
+    mountPath: /cloud/aerith-gdrive
+  - name: karina-uit-gdrive
+    mountPath: /mnt/karina-uit-gdrive
+  - name: kirara-gdrive
+    mountPath: /cloud/kirara-gdrive
+  - name: sesshomaru-gdrive
+    mountPath: /cloud/sesshomaru-gdrive
   # Set securityContext parameters for the nextcloud CONTAINER only (will not affect nginx container).
   # For example, you may need to define runAsNonRoot directive
   securityContext: {} # Set securityContext parameters for the entire pod. For example, you may need to define runAsNonRoot directive
