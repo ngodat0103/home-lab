@@ -1,0 +1,141 @@
+# 🚨 Troubleshooting Notes
+
+---
+
+## ⭐ Issue 1: LXC in Private Network Can’t Reach External Internet
+
+**Situation**:  
+An LXC container running in a private Proxmox network (`192.168.99.0/24`) was isolated and couldn’t access the external internet.
+
+**Task**:  
+Make sure the container can reach external resources (apt, docker registry, etc.) while keeping it in a private subnet.
+
+**Action**:  
+
+✅ **Enable IP forwarding on Proxmox host**  
+```bash
+echo "net.ipv4.ip_forward = 1" > /etc/sysctl.d/99-ipforward.conf
+sysctl -p /etc/sysctl.d/99-ipforward.conf
+```
+
+✅ **Set up NAT (iptables version)**  
+```bash
+iptables -t nat -A POSTROUTING -s 192.168.99.0/24 -o vmbr0 -j MASQUERADE
+
+# (optional) persist with netfilter-persistent on Debian/Ubuntu
+apt-get update && apt-get install -y netfilter-persistent iptables-persistent
+netfilter-persistent save
+```
+> Use either iptables **or** nftables (not both).
+
+✅ **Set up NAT (nftables, preferred on Debian/modern distros)**  
+```bash
+# Enable nftables service
+systemctl enable --now nftables
+
+# Add NAT table & chain
+nft add table ip nat
+nft add chain ip nat postrouting { type nat hook postrouting priority 100 \; }
+
+# Add masquerade rule
+nft add rule ip nat postrouting ip saddr 192.168.99.0/24 oif "vmbr0" masquerade
+
+# Persist rules
+nft list ruleset > /etc/nftables.conf
+```
+
+**Result**:  
+Containers in the private subnet now resolve DNS and access the internet seamlessly. 🟢
+
+---
+
+## ⭐ Issue 2: Vagrant Auto-Network Config Breaks Custom Bridge Setup
+
+**Situation**:  
+Vagrant auto-generates `/etc/network/interfaces` entries for `enp0s8`, conflicting with a custom Proxmox bridge (`vmbr2`).  
+This prevents using `enp0s8` as a dedicated uplink for a manual bridge.
+
+**Constraint — Why we don’t touch `vmbr0`**:  
+`vmbr0` is the **Proxmox management bridge** and, in this lab, it is also the path Vagrant relies on to keep `vagrant ssh` working.  
+Vagrant’s generated config expects a DHCP‑enabled management interface and a valid default route reachable via that bridge. If you repoint or modify `vmbr0`, the Proxmox guest can become unreachable from Vagrant, breaking `vagrant ssh` and provisioning.
+
+**Task**:  
+Prevent Vagrant from overwriting network config while still allowing SSH access and adding a new public uplink via a custom bridge.
+
+**Action**:  
+
+✅ **Disable auto network config in Vagrantfile**  
+```ruby
+Vagrant.configure("2") do |config|
+  # Leave vmbr0 alone so `vagrant ssh` continues to work.
+  # Stop Vagrant from touching enp0s8; we’ll manage it ourselves.
+  config.vm.network "public_network", bridge: "enp0s8", auto_config: false
+end
+```
+
+✅ **Manually configure Linux bridge `vmbr2` and attach to `enp0s8`**  
+```bash
+cat <<'EOF' >/etc/network/interfaces.d/bridge-vmbr2
+auto enp0s8
+iface enp0s8 inet manual
+
+auto vmbr2
+iface vmbr2 inet dhcp
+    bridge_ports enp0s8
+EOF
+
+# apply without reboot (ifupdown2 recommended on Proxmox)
+if command -v ifreload >/dev/null; then
+  ifreload -a
+else
+  systemctl restart networking
+fi
+```
+
+**Result**:  
+Vagrant keeps SSH stable via `vmbr0`, and Proxmox gains a separate bridged uplink on `vmbr2` using `enp0s8`. 🟢
+
+---
+
+## ⭐ Issue 3: Terraform Hangs When Enabling Agent Mode Without Documentation Review
+
+**Situation**:  
+While experimenting with the Proxmox Terraform provider, enabling the `agent` option on a VM caused Terraform to hang indefinitely during `apply`.  
+
+**Task**:  
+Diagnose why Terraform wasn’t completing and restore a reliable provisioning pipeline.
+
+**Action**:  
+- Investigated logs and noticed Terraform waiting on QEMU Guest Agent responses.  
+- Realized the VM template used had **no `qemu-guest-agent` installed**.  
+- Disabled the `agent` flag until templates were rebuilt with the agent installed.  
+
+**Result**:  
+Terraform plans now complete reliably.  
+Future remediation: bake `qemu-guest-agent` into golden templates so the `agent` flag can be safely enabled. 🟢  
+
+---
+
+## ⭐ Issue 4: Missing Promiscuous Mode → External Traffic Not Reaching Proxmox VMs
+
+**Situation**:  
+VMs inside Proxmox (running under VirtualBox as the hypervisor) couldn’t receive traffic from the external LAN. SSH into Proxmox and inspecting TAP interfaces showed they had **no assigned IP addresses**, suggesting packets weren’t being bridged correctly.  
+
+**Task**:  
+Identify why external packets weren’t reaching the nested Proxmox guests.  
+
+**Action**:  
+- Checked VirtualBox NIC settings.  
+- Found that **Promiscuous Mode** was disabled on the VirtualBox host adapter.  
+- Enabled **Promiscuous Mode → “Allow All”** for the Proxmox VM’s NIC in VirtualBox.  
+
+**Result**:  
+Traffic now flows correctly from external networks into Proxmox guests. SSH and services inside Proxmox VMs are reachable as expected. 🟢  
+
+---
+
+✨ **Pattern across all issues**:  
+1. Start with a broken state.  
+2. Narrow down to a root cause (forwarding off, autogenerated configs, missing agent, blocked promiscuous mode).  
+3. Apply targeted fix.  
+4. Document solution clearly for future reproducibility.  
