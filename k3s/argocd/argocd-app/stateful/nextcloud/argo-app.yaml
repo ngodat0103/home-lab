@@ -17,6 +17,11 @@ spec:
     namespace: nextcloud
     name: in-cluster
   sources:
+  - repoURL: "https://github.com/dvcrn/csi-rclone-reloaded.git"
+    targetRevision: "2d0a54bdf785115100c92446fc1edaf726347ed8"
+    path: "deploy/kubernetes/1.19"
+    directory:
+      recurse: false
   - repoURL: https://nextcloud.github.io/helm/
     chart: nextcloud
     helm:
@@ -31,3 +36,4 @@ spec:
     targetRevision: "datnvm/argocd-dev"
     directory:
       recurse: false
+      exclude: ""
