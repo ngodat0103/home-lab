@@ -1,0 +1,15 @@
+# To fix error Aug 23 22:44:52 pve-master kernel: pcieport 0000:80:02.0: AER: Correctable error message received from 0000:81:00.0 
+
+- name: Disable PCIe ASPM in GRUB
+  hosts: "proxmox-server"
+  become: yes
+  tasks:
+    - name: Ensure GRUB_CMDLINE_LINUX_DEFAULT contains "quiet pcie_aspm=off"
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet pcie_aspm=off"'
+        backrefs: yes
+    - name: Update grub Debian
+      ansible.builtin.command: update-grub
+      when: ansible_os_family == "Debian"
