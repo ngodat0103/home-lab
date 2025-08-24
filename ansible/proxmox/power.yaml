@@ -1,0 +1,14 @@
+- name: "Make sure Proxmox is running schedutil mode"
+  hosts: "proxmox-server"
+  become: yes
+  tasks:
+   - name: "Make sure linux-cpupower is installed"
+     ansible.builtin.apt:
+      name: "linux-cpupower"
+      update_cache: true
+     ignore_errors: yes
+   - name: "Make sure schedutil is enabled on boot"
+     ansible.builtin.cron:
+      name: "Set the governor to schedutil"
+      special_time: "reboot"
+      job: "/usr/bin/cpupower frequency-set -g schedutil"

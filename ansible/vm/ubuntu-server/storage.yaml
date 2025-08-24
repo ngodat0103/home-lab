@@ -1,0 +1,17 @@
+# https://docs.ansible.com/ansible/latest/collections/ansible/posix/mount_module.html
+- name: 'Manage storage'
+  hosts: 'ubuntu-server'
+  become: yes
+  tasks:
+  - name: "Mount vdb1 storage at /mnt/data1 "
+    ansible.posix.mount:
+      path: "/mnt/data1"
+      fstype: "ext4"
+      src: "/dev/vdb1"
+      state: mounted
+  - name: "Mount vdb2 storage at /mnt/data2 "
+    ansible.posix.mount:
+      fstype: "ext4"
+      path: "/mnt/data2"
+      src: "/dev/vdb2"
+      state: mounted

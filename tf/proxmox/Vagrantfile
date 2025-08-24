@@ -3,11 +3,28 @@ Vagrant.configure("2") do |config|
   config.vm.box         = "clincha/proxmox-ve-8"
   config.vm.box_version = "1.2.1"
 
+  
+  config.vm.hostname = "pve.local"
+  config.vm.network "public_network", bridge: "eno1", auto_config: false
   config.vm.provider "virtualbox" do |vb|
   vb.memory = 20*1024
   vb.cpus = 6
   vb.gui = false
+  vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
   end
-  config.vm.hostname = "pve.local"
-  config.vm.network "public_network", bridge: "eno1", auto_config: false
+  unless Vagrant.has_plugin?("vagrant-persistent-storage")
+   system("vagrant plugin install vagrant-persistent-storage") or raise "vagrant-persistent-storage is required. Please install it manually."
+  end
+  config.persistent_storage.enabled = true
+  config.persistent_storage.partition = true
+  config.persistent_storage.location="disk_for_running6.vdi"
+  config.persistent_storage.diskdevice= "/dev/sdb"
+  config.persistent_storage.volgroupname = "runtime-disk"
+  config.persistent_storage.size = 1024*70
+  # vagrant plugin install vagrant-persistent-storage
+  # github: https://github.com/kusnier/vagrant-persistent-storage
+  
+  
+
+  config.vm.provision "shell" , path: "./provision.sh", privileged: true
 end
