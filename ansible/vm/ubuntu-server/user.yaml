@@ -1,0 +1,39 @@
+## AFter setup this user, root account can't ssh anymore
+- name: "Manage user"
+  hosts: "ubuntu-server"
+  handlers:
+   - name: restart-sshd
+     ansible.builtin.service:
+      name: "{{ 'ssh' if ansible_facts['os_family'] == 'Debian' else 'sshd' }}"
+      state: restarted
+  tasks:
+   - name: "Make sure user Akira is existed"
+     ansible.builtin.user:
+      name: "akira"
+      uid: 1000
+      groups: ["sudo","docker"]
+      password: "$6$Fm5U5THoLdpNM8hW$1PNJSoXJOcUkconcw9BF.mZKlKG0l0ss11qcSPW8/024hIkKVi4kWqsnFeVWrJ4z/HBK/UNlQXwkG8d/XtqcW0"
+      shell: /bin/bash
+      ssh_key_file: "~/OneDrive/ssh/akira-ubuntu-server/akira/id_rsa"
+      state: present
+   - name: Make sure .ssh directory existed
+     ansible.builtin.file:
+      dest: "/home/akira/.ssh/"
+      state: directory
+      owner: akira
+      group: akira
+   - name: Put public key
+     ansible.builtin.copy:
+      src: "~/OneDrive/ssh/akira-ubuntu-server/akira/id_rsa.pub"
+      dest: "/home/akira/.ssh/authorized_keys"
+      owner: akira
+      group: akira
+      mode: 400
+   - name: Ensure PermitRootLogin is set to no
+     ansible.builtin.lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^#?PermitRootLogin\s+'
+      line: 'PermitRootLogin no'
+      state: present
+      backup: yes
+     notify: restart-sshd
