@@ -3,7 +3,7 @@ set -euo pipefail
 
 LOG_LIB_URL="${LOG_LIB_URL:-https://raw.githubusercontent.com/ngodat0103/common-stuff/b54ce2aeff431309f89261039115165d8c368cc0/0-shell/7-log/log.sh}"
 
-source <(curl -fsl ${LOG_LIB_URL}) || return
+source <(curl -fsl ${LOG_LIB_URL}) || exit 1
 
 # Create a PVE user and an API token with full privileges (inherits the user's rights)
 # Saves Terraform-friendly env vars to /root/<user>_api_token.env
@@ -11,7 +11,7 @@ source <(curl -fsl ${LOG_LIB_URL}) || return
 require_root() {
   if [[ $(id -u) -ne 0 ]]; then
     print_error "This script must be run as root." >&2
-    return
+    exit 1
   fi
 }
 
@@ -35,7 +35,7 @@ prompt_credentials() {
   read -srp "Confirm password: " PW2; echo
   if [[ "$PW1" != "$PW2" ]]; then
     print_error "Passwords do not match. Aborting." >&2
-    return
+    exit 1
   fi
 }
 
@@ -53,12 +53,27 @@ create_user() {
 
 create_token_full_priv() {
   print_info "Creating full-privilege API token ${USERID}!${TOKEN_ID} ..."
+
   TOKEN_JSON="$(pveum user token add "$USERID" "$TOKEN_ID" --privsep 0 --output-format json)"
 
+  # Extract values with grep/sed
+  FULL_TOKENID=$(echo "$TOKEN_JSON" | sed -n 's/.*"full-tokenid":"\([^"]*\)".*/\1/p')
+  VALUE=$(echo "$TOKEN_JSON" | sed -n 's/.*"value":"\([^"]*\)".*/\1/p')
 
-  echo $TOKEN_JSON > /root/admin_token.json
-  print_info "token saved at /root/admin_token.json"
+  FULL_LINE="${FULL_TOKENID}=${VALUE}"
+
+  # Write augmented JSON manually
+  cat > /root/admin_token.json <<EOF
+$TOKEN_JSON
+,"fullformat":"$FULL_LINE"}
+EOF
+
+  chmod 600 /root/admin_token.json
+
+  echo "$FULL_LINE"
+  print_info "Token saved (with fullformat) at /root/admin_token.json"
 }
+
 
 create-admin-account() {
   require_root
@@ -67,3 +82,6 @@ create-admin-account() {
   create_token_full_priv
   print_info "Done. User: $USERID with Administrator role. Token: ${USERID}!${TOKEN_ID}"
 }
+
+
+create-admin-account

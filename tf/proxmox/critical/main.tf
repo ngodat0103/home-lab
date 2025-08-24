@@ -46,8 +46,7 @@ locals {
 
 
 module "network_default" {
-  source = "../terraform-module/proxmox/network/private"
-  #source         = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/network/private?ref=29d6a14d18ef468c41b80faec39ad0e70459bebe"
+  source         = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/network/private?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
   for_each       = local.network
   bridge_address = each.value.bridge_address
   node_name = local.node_name
@@ -73,8 +72,7 @@ resource "proxmox_virtual_environment_download_file" "vm" {
 }
 
 module "lxc_production" {
-  source = "../terraform-module/proxmox/lxc"
-  #source                   = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/lxc?ref=29d6a14d18ef468c41b80faec39ad0e70459bebe"
+  source                   = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/lxc?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
   for_each                 = local.lxc
   ip_address               = each.value.ip_address
   gateway                  = each.value.gateway
@@ -93,7 +91,7 @@ module "lxc_production" {
 }
 
 module "ubuntu_server"{
-  source = "../terraform-module/proxmox/vm"
+  source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name = "UbuntuServer"
   tags = ["production","storage","main"]
