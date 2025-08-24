@@ -1,0 +1,53 @@
+---
+- name: Setup NFS using Samba
+  hosts: ubuntu-server
+  become: true
+  vars:
+   smb_user: akira
+   smb_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          30343139623037353038396566326134386164663134616564663835323633373631636438303662
+          6439343266666534393961366330646464613236336130310a653530613363663264656136313961
+          39373234393063306639663438353037373930306433373934626265663664383365643739613931
+          6435306162643633630a346134303534363130626333666330333835623832333837663732663039
+          6534
+   samba_shares:
+    - name: data1
+      comment: "share for data1"
+      path: "/mnt/data1"
+      valid_users: ["akira"]
+  handlers:
+    - name: Reload Samba
+      ansible.builtin.systemd:
+        name: smbd
+        state: reloaded
+  tasks:
+  - name: Install Samba packages
+    ansible.builtin.package:
+      name:
+      - samba
+      - smbclient
+      state: present
+  - name: Check if Samba user already exists in passdb
+    ansible.builtin.shell: "pdbedit -L -u {{ smb_user }}"
+    register: pdb_check
+    changed_when: false
+    failed_when: false
+  - name: Create Samba user with password
+    ansible.builtin.shell: |
+      set -o pipefail
+      printf "%s\n%s\n" "{{ smb_password }}" "{{ smb_password }}" | smbpasswd -s -a {{ smb_user }}
+    args:
+      executable: /bin/bash
+    when: pdb_check.rc != 0
+    register: smb_create
+    changed_when: "'Added user' in smb_create.stdout or smb_create.rc == 0"
+  - name: Deploy smb.conf from template
+    ansible.builtin.template:
+      src: "templates/samba-share.conf.j2"
+      dest: /etc/samba/smb.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+      - Reload Samba
