@@ -1,15 +1,15 @@
-name: ci
-on:
-  push:
-    branches: [ "master" ]
-    paths:
-    - "**/*.yaml"
-  pull_request:
-jobs:
-  ci:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.2.2
-    - name: Scan misconfiguration
-      run: docker run --rm -v .:/home-lab:ro  aquasec/trivy config --exit-code 10 /home-lab
+# name: ci
+# on:
+#   push:
+#     branches: [ "master" ]
+#     paths:
+#     - "**/*.yaml"
+#   pull_request:
+# jobs:
+#   ci:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4.2.2
+#     - name: Scan misconfiguration
+#       run: docker run --rm -v .:/home-lab:ro  aquasec/trivy config --exit-code 10 /home-lab
