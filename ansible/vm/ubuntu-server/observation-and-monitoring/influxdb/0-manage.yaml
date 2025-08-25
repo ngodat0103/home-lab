@@ -17,19 +17,26 @@
       dest: "{{item}}"
      loop: ["/mnt/data1/influxdb3/data","/mnt/data1/influxdb3/plugins"]
    - name: Make sure Influxdb is running
+     vars:
+      influxdb_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33636461653162356631636431346162313963653963316462383236616438653865393062656430
+          3437326466656238663737326330643664323331333861320a396638656433636233663563613632
+          64326665323139613464353539363064353961663335643436326366613936376133346538656264
+          3339633463303364320a316466366664666162356338373266323439306538346230323033366234
+          6635
      ansible.builtin.docker_container:
       name: influxdb
-      image: influxdb:3.3.0-core@sha256:7ab6964f5a39c436d61c2d7d90a2beef14f7f8637b194e28c650d229ce15bf18
+      image: influxdb:2.7.12@sha256:59fe0181a3b161d36e9ce53001d7e1678762013ab0a284969ec2ebc517b529cc
       state: started
       volumes:
-       - "/mnt/data1/influxdb3/data:{{influx_data_container_path}}"
-       - "/mnt/data1/influxdb3/plugins:{{influx_plugins_container_path}}"
+       - "/mnt/data1/influxdb2/data:{{influx_data_container_path}}"
+       - "/mnt/data1/influxdb2/plugins:{{influx_plugins_container_path}}"
       restart_policy: always
-      command:
-        - influxdb3
-        - serve
-        - --node-id=node0
-        - --object-store=file
-        - --data-dir={{influx_data_container_path}}
-        - --plugin-dir={{influx_plugins_container_path}}
+      env:
+       DOCKER_INFLUXDB_INIT_MODE: setup
+       DOCKER_INFLUXDB_INIT_USERNAME: influxdb
+       DOCKER_INFLUXDB_INIT_PASSWORD:  "{{influxdb_password}}"
+       DOCKER_INFLUXDB_INIT_ORG: proxmox
+       DOCKER_INFLUXDB_INIT_BUCKET: proxmox
       network_mode: host
