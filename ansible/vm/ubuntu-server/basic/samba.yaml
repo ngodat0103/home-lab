@@ -15,6 +15,10 @@
       comment: "share for data1"
       path: "/mnt/data1"
       valid_users: ["akira"]
+    - name: data2
+      comment: "share for data2"
+      path: "/mnt/data2"
+      valid_users: ["akira"]
   handlers:
     - name: Reload Samba
       ansible.builtin.systemd:
@@ -42,6 +46,7 @@
     register: smb_create
     changed_when: "'Added user' in smb_create.stdout or smb_create.rc == 0"
   - name: Deploy smb.conf from template
+    tags: "set-share-dir"
     ansible.builtin.template:
       src: "templates/samba-share.conf.j2"
       dest: /etc/samba/smb.conf

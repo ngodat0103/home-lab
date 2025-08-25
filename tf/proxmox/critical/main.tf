@@ -57,7 +57,9 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   url          = each.value
 }
 module "ubuntu_server"{
-  source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
+  source = "../terraform-module/proxmox/vm"
+  
+  #source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name = "UbuntuServer"
   tags = ["production","storage","main"]
@@ -67,18 +69,31 @@ module "ubuntu_server"{
   bridge_name = "vmbr0"
   memory = 8096
   gateway = local.lan_gateway
-  protection = true
+  protection = false
   vm_id = 101
   cpu_type = "host"
   boot_disk_size = 256
   cpu_cores = 4
   public_key = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
+  startup_config = {
+    order  =1
+    up_delay = 10
+    down_delay = 10
+  }
   additional_disks = {
-    sda2 ={
-      path_in_datastore = "/dev/disk/by-id/ata-HGST_HTS721010A9E630_JR10006P1SSP5F"
+    data1 ={
+      path_in_datastore = "/dev/disk/by-id/ata-ST500DM002-1BD142_Z3TX81A7"
       file_format = "raw"
       datastore_id = ""
       interface = "virtio1"
+      size = 465
+      backup = false
+    },
+    data2 ={
+      path_in_datastore = "/dev/disk/by-id/ata-HGST_HTS721010A9E630_JR10006P1SSP5F"
+      file_format = "raw"
+      datastore_id = ""
+      interface = "virtio2"
       size = 931
       backup = false
     }

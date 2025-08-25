@@ -15,7 +15,7 @@
       group: "{{influx_uid}}"
       recurse: true
       dest: "{{item}}"
-     loop: ["/mnt/data1/influxdb2/data","/mnt/data1/influxdb2/config"]
+     loop: ["/mnt/data2/influxdb2/data","/mnt/data2/influxdb2/config"]
    - name: Make sure Influxdb is running
      vars:
       influxdb_password: !vault |
@@ -30,8 +30,8 @@
       image: influxdb:2.7.12@sha256:59fe0181a3b161d36e9ce53001d7e1678762013ab0a284969ec2ebc517b529cc
       state: started
       volumes:
-       - "/mnt/data1/influxdb2/data:{{influx_data_container_path}}"
-       - "/mnt/data1/influxdb2/config:{{influx_config_container_path}}"
+       - "/mnt/data2/influxdb2/data:{{influx_data_container_path}}"
+       - "/mnt/data2/influxdb2/config:{{influx_config_container_path}}"
       restart_policy: always
       env:
        DOCKER_INFLUXDB_INIT_MODE: setup

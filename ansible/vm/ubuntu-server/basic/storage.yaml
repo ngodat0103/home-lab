@@ -3,7 +3,7 @@
   hosts: 'ubuntu-server'
   become: yes
   tasks:
-  - name: "Mount vdb1 storage at /mnt/data1 "
+  - name: "Mount vdb1 storage at /mnt/data2 "
     ansible.posix.mount:
       path: "/mnt/data1"
       fstype: "ext4"
@@ -13,5 +13,11 @@
     ansible.posix.mount:
       fstype: "ext4"
       path: "/mnt/data2"
-      src: "/dev/vdb2"
+      src: "/dev/vdc1"
+      state: mounted
+  - name: "Mount vdc2 for timeshift program"
+    ansible.posix.mount:
+      fstype: ext4
+      path: /mnt/history
+      src: /dev/vdc2
       state: mounted
