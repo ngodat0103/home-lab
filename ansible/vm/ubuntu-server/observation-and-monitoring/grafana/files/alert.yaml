@@ -1,0 +1,9 @@
+contactPoints:
+- orgId: 1
+  name: Email to Mine
+  receivers:
+  - uid: mine
+    type: email
+    settings:
+      addresses: ngovuminhdat@gmail.com
+      singleEmail: true

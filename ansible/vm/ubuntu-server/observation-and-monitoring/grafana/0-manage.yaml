@@ -1,0 +1,71 @@
+# Version grafana collection: 5.6
+
+- name: Manage Grafana
+  hosts: ubuntu-server
+  become: yes
+  vars:
+   default_influxdb_datasource_name: 'pve-master'
+   grafana_alert_resources: 
+    contactPoints:
+      - orgId: 1
+        name: Email to Mine
+        receivers:
+          - uid: mine
+            type: email
+            settings:
+              addresses: ngovuminhdat@gmail.com
+              singleEmail: true
+   grafana_provisioning_sync: true
+   grafana_dashboards:
+       # https://grafana.com/grafana/dashboards/12966-mo-server/
+    - dashboard_id: 12966
+      revision_id: 1
+      datasource: "{{default_influxdb_datasource_name}}"
+   grafana_security:
+    admin_user: akira
+    admin_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38656232333364343263613261306536306335383162363135646232636134393766323463613738
+          3933646637623131646263373131313230386663373037340a306637646635353436623730666465
+          35643634356537333438613632396364316333343864303466346339336135313766363763653539
+          3262396564663334620a613764633737376538383932373761643639396237626263353232666166
+          3664
+   influxdb_api_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36623630333762646534613237303335666263373964316564633336613638353463353564386338
+          3836333835666363656565623364363031353663393833340a306434633839326662613361343361
+          65333636643132326639306533376634656437303136396531366663363036306261663633386465
+          6630616531326239380a646462313632373639326163303135646533633865636463333235663230
+          32656339666435303832316465323037333938626335366236353336393731623338333862316164
+          37363839316366653563663866383833393730366239333331343033353666393066373035313038
+          66363766303736393463353862653435616233626261363864643237613961623865643861316538
+          35396662626563623235313965323563646235313333326637616532656431303664336634623762
+          3961
+   grafana_datasources:
+    - name: "{{default_influxdb_datasource_name}}"
+      type: influxdb
+      url: 'http://127.0.0.1:8181'
+      basicAuth: false
+      database: pve-master # Need to create database in influxdb first using: influxdb3 create database pve-master
+      jsonData:
+        httpHeaderName1: "Authorization"
+      secureJsonData:
+        httpHeaderValue1: "Bearer {{influxdb_api_token}}"
+  roles:
+   - name: grafana.grafana.grafana
+  tasks:
+   - name: Configure smtp
+     tags: configure-email
+     vars:
+      smtp_username: 21521935@gm.uit.edu.vn
+      smtp_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          63383162313666393632373363303066316533353836353738363637373534326563333934633066
+          6331626131376534316663633334363964623135366366370a623536613163373231376566323061
+          63326466663932656230653362343936353433306431313238346366613638386331633436633932
+          6537376661323739300a333931353837643661383531343533623030393631346561343338353638
+          65663939636463343638623731336266336639303334653865313138616233623237
+     ansible.builtin.blockinfile:
+      dest: /etc/grafana/grafana.ini
+      block: "{{lookup('ansible.builtin.template','smtp.ini.j2')}}"
+     notify: Restart grafana
