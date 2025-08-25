@@ -17,9 +17,9 @@
               singleEmail: true
    grafana_provisioning_sync: true
    grafana_dashboards:
-       # https://grafana.com/grafana/dashboards/12966-mo-server/
-    - dashboard_id: 12966
-      revision_id: 1
+       # https://grafana.com/grafana/dashboards/10048-proxmox/
+    - dashboard_id: 10048
+      revision_id: 4
       datasource: "{{default_influxdb_datasource_name}}"
    grafana_security:
     admin_user: akira

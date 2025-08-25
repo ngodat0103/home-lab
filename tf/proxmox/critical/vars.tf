@@ -6,3 +6,7 @@ variable "proxmox_endpoint" {
   description = "ENDPOINT"
   type        = string
 }
+variable "influxdb_token"{
+  type = string
+  sensitive = true
+}

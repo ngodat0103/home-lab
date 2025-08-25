@@ -17,12 +17,6 @@ locals {
       node_name = local.node_name
       bridge_comment = "This network can't be reached from outside and is used for stateful applications."
     },
-    lab = {
-      bridge_name    = "lab"
-      bridge_address = "192.168.40.1/24"
-      node_name = local.node_name
-      bridge_comment = "Isolated network for my testing things"
-    }
   }
   lxc = {
     postgresql_16 = {
@@ -101,18 +95,32 @@ module "ubuntu_server"{
   bridge_name = "vmbr0"
   memory = 8096
   gateway = local.lan_gateway
+  protection = true
   vm_id = 101
   cpu_type = "host"
   boot_disk_size = 80
   cpu_cores = 4
-  public_key = file("~/OneDrive/ssh/akira-ubuntu-server/id_rsa.pub")
+  public_key = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
   additional_disks = {
     sda2 ={
       path_in_datastore = "/dev/disk/by-id/ata-HGST_HTS721010A9E630_JR10006P1SSP5F"
       file_format = "raw"
       datastore_id = ""
       interface = "virtio1"
+      size = 931
       backup = false
     }
   }
+}
+#Push metrics to influxdb hosted in Ubuntu vm
+resource "proxmox_virtual_environment_metrics_server" "influxdb_server" {
+  count =  var.influxdb_token == null ? 0 : 1
+  name   = "influxdb-ubuntu-server"
+  server = "192.168.1.121"
+  port   = 8086
+  type   = "influxdb"
+  influx_organization = "proxmox"
+  influx_bucket = "proxmox"
+  influx_db_proto = "http"
+  influx_token = var.influxdb_token
 }
