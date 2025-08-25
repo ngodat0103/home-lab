@@ -4,8 +4,8 @@
   become: yes
   vars:
    influx_uid: 1500  #default influx container use this id
-   influx_data_container_path: /var/lib/influxdb3/data
-   influx_plugins_container_path: /var/lib/influxdb3/plugins
+   influx_data_container_path: /var/lib/influxdb2
+   influx_config_container_path: /etc/influxdb2
   tasks:
    - name: Make sure directory exists
      ansible.builtin.file:
@@ -15,23 +15,23 @@
       group: "{{influx_uid}}"
       recurse: true
       dest: "{{item}}"
-     loop: ["/mnt/data1/influxdb3/data","/mnt/data1/influxdb3/plugins"]
+     loop: ["/mnt/data1/influxdb2/data","/mnt/data1/influxdb2/config"]
    - name: Make sure Influxdb is running
      vars:
       influxdb_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
-          33636461653162356631636431346162313963653963316462383236616438653865393062656430
-          3437326466656238663737326330643664323331333861320a396638656433636233663563613632
-          64326665323139613464353539363064353961663335643436326366613936376133346538656264
-          3339633463303364320a316466366664666162356338373266323439306538346230323033366234
-          6635
+          34313666373664386161356362666665383761386234663737313634316465656434613763636432
+          3864663166346334646266383966333434396362613164390a346131653966396232623231663466
+          63666530613539326632376435306531383430613263333435323665383764333239353739366633
+          3430373333303135320a356536623337366537633964366637616438636363656464373730646638
+          6233
      ansible.builtin.docker_container:
       name: influxdb
       image: influxdb:2.7.12@sha256:59fe0181a3b161d36e9ce53001d7e1678762013ab0a284969ec2ebc517b529cc
       state: started
       volumes:
        - "/mnt/data1/influxdb2/data:{{influx_data_container_path}}"
-       - "/mnt/data1/influxdb2/plugins:{{influx_plugins_container_path}}"
+       - "/mnt/data1/influxdb2/config:{{influx_config_container_path}}"
       restart_policy: always
       env:
        DOCKER_INFLUXDB_INIT_MODE: setup
