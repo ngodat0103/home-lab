@@ -1,8 +1,10 @@
+# Version grafana collection: 5.6
+
 - name: Manage Grafana
-  hosts: akira-home
+  hosts: ubuntu-server
   become: yes
   vars:
-   default_prometheus_datasource_name: 'prometheus-home'
+   default_influxdb_datasource_name: 'pve-master'
    grafana_alert_resources: 
     contactPoints:
       - orgId: 1
@@ -15,14 +17,10 @@
               singleEmail: true
    grafana_provisioning_sync: true
    grafana_dashboards:
-   # https://grafana.com/grafana/dashboards/1860-node-exporter-full/
-    - dashboard_id: 1860
-      revision_id: 40
-      datasource: "{{default_prometheus_datasource_name}}"
-    # https://grafana.com/grafana/dashboards/14282-cadvisor-exporter/
-    - dashboard_id: 14282
-      revision_id: 1
-      datasource: "{{default_prometheus_datasource_name}}"
+       # https://grafana.com/grafana/dashboards/10048-proxmox/
+    - dashboard_id: 10048
+      revision_id: 4
+      datasource: "{{default_influxdb_datasource_name}}"
    grafana_security:
     admin_user: akira
     admin_password: !vault |
@@ -32,13 +30,29 @@
           35643634356537333438613632396364316333343864303466346339336135313766363763653539
           3262396564663334620a613764633737376538383932373761643639396237626263353232666166
           3664
+   influxdb_api_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66323864303737316132623139393930306438653462616138363234653130336530396364373239
+          3533373039366638613362636331366434626332313232380a353534623539653838643334313335
+          33666531363861343534626432356330353234663665653365666562343034323037663336383438
+          6230343035663130630a303130303334623534643864623564346439623061613630346236636534
+          33353566353933653865663538363339653432383335326362306664663937643236346632383164
+          39613630626665373231666138313130366431303437643165393061663537613863653864303263
+          39613136633230376130666162346538313635396362366533383536386633376437343562303335
+          63633137656662393762626661326161393465343736353761613538363430373637643836653263
+          6266
    grafana_datasources:
-    - name: "{{default_prometheus_datasource_name}}"
-      type: prometheus
-      url: 'http://127.0.0.1:9090'
+    - name: "{{default_influxdb_datasource_name}}"
+      type: influxdb
+      url: 'http://127.0.0.1:8086'
       basicAuth: false
+      jsonData:
+       httpHeaderName1: Authorization
+      secureJsonData:
+       httpHeaderValue1: "Token {{influxdb_api_token}}"
+      database: proxmox # Need to create database in influxdb first using: influxdb3 create database pve-master
   roles:
-   - grafana.grafana.grafana
+   - name: grafana.grafana.grafana
   tasks:
    - name: Configure smtp
      tags: configure-email
@@ -55,4 +69,3 @@
       dest: /etc/grafana/grafana.ini
       block: "{{lookup('ansible.builtin.template','smtp.ini.j2')}}"
      notify: Restart grafana
-   

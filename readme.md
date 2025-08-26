@@ -1,58 +1,45 @@
-# Home Lab
+# Overview
+Welcome to my homelab, this is where I apply best practice to manage my own server and virtualization for lab. 
 
-Personal homelab for learning **production-grade Kubernetes deployment practices** before applying to family home server. Migrated from Ansible to **K3s + GitOps** for cloud-native infrastructure management.
-
-## Objective
-
-Learn and validate production best practices for:
-- K3s cluster management and GitOps workflows
-- High-availability application deployment
-- Monitoring, alerting, and backup strategies
-- Security and secret management
-- Storage and networking solutions
-
-**Goal**: Apply validated configurations to production home server.
-
-## Tech Stack
-
-**Infrastructure**: Vagrant, K3s, Flannel CNI, VirtualBox  
-**GitOps**: ArgoCD, self-healing, automated sync  
-**Storage**: Longhorn, NFS external provisioner  
-**Networking**: Traefik ingress, SSL termination  
-**Security**: Sealed Secrets, encrypted secret management  
-**Monitoring**: Kube Prometheus Stack, Grafana, AlertManager  
-**DNS**: Terraform + Cloudflare  
-**Legacy**: Ansible (deprecated), Docker standalone (migrating)
+# Status
+I currently migrate from Ubuntu bare metal (death machine) to VM Ubuntu created by Proxmox
 
 ## Structure
 
-```
-├── k3s/                # 🚀 Primary: K3s + GitOps applications
-├── ansible/            # Legacy: Ansible playbooks (deprecated)
-├── tf/                 # Terraform: Cloudflare DNS
-└── common-stuff/       # Shared utilities and scripts
-```
+The repository is organized into the following directories:
 
-## Status
+-   `k3s/`: Contains all the resources for the K3s cluster. # Inten to lab, not critical
+    -   `argocd/`: Holds the ArgoCD applications for GitOps.
+    -   `traefik/`: Contains Traefik configurations.
+    -   `Vagrantfile`: Defines the Vagrant setup for the cluster nodes.
+    -   `*.sh`: Scripts to manage the lifecycle of the cluster (startup, shutdown, node setup).
 
-**✅ Lab Ready**: K3s cluster, ArgoCD GitOps, Traefik ingress, Longhorn storage, Sealed Secrets  
-**🚧 Learning**: Monitoring stack, alerting rules, production patterns  
-**🎯 Next**: Validate production-grade configurations for family server
+-   `ansible/`: Ansible playbooks used for the initial setup.
+    -   `docker/`: Playbooks to deploy Docker services (migrating to `vm/ubuntu-server` from bare metal).
+    -   `service/`: Playbooks for various services. (migrating to `vm/ubuntu-server` from bare metal).
+    -   `vm/`: Playbooks to set up virtual machines.
+    -   `proxmox/`: Playbooks to manage Proxmox 
 
-## Applications
+-   `tf/`: Contains Terraform configurations for managing cloud resources.
+    -   `cloudflare/`: Manages DNS records on Cloudflare.
+    -   `kvm/`: Manages KVM virtual machines.
+    -   `proxmox/`: Manages Proxmox resources.
+    -   `uptimerobot/`: Manages monitoring with Uptime Robot.
 
-**✅ K3s Deployed**: Vaultwarden, qBittorrent, PostgreSQL, Traefik, ArgoCD  
-**� Migrating**: GitLab, MinIO, Redis, Nextcloud
+-   `common-stuff/`: Shared utilities and scripts
 
-## Quick Start
+## Specifications
 
-**Requirements**: Vagrant, VirtualBox, kubectl, helm
+-   **CPU**: 56 x Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz (2 Sockets)
+-   **Kernel Version**: Linux 6.14.8-2-pve (2025-07-22T10:04Z)
+-   **Boot Mode**: Legacy BIOS
+-   **Proxmox VE Manager Version**: pve-manager/9.0.3/025864202ebb6109
+-   **Memory**: 62GB
+-   **Disk**:
+    -   `sda`: 465.8G ST500DM002-1BD142    Z3TX81A7
+        -   `sda1`: 465.8G
+    -   `sdb`: 931.5G HGST HTS721010A9E630 JR10006P1SSP5F
+        -   `sdb1`: 791.6G
+        -   `sdb2`: 139.9G
+    -   `nvme0n1`: 1.8T WDS200T3X0C-00SJG0   203990800463
 
-```bash
-cd k3s/
-./start-cluster.sh     # Deploy 4-node K3s + ArgoCD
-./shutdown-cluster.sh  # Graceful shutdown + volume detach
-```
-
-**Cluster**: 1 master + 2 workers + 1 NFS server (192.168.57.0/24)  
-**Purpose**: Learning lab to validate patterns before production home server

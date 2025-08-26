@@ -1,0 +1,8 @@
+- name: Manage Network Docker
+  hosts: ubuntu-server
+  tasks:
+   - name: Create runtime network
+     ansible.builtin.docker_network:
+      name: runtime-network
+      ipam_config:
+        - subnet: 192.168.30.0/24

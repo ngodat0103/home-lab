@@ -1,10 +1,10 @@
-terraform { 
-  cloud { 
-    
-    organization = "akira-homelab" 
+terraform {
+  cloud {
 
-    workspaces { 
-      name = "production" 
-    } 
-  } 
+    organization = "akira-homelab"
+
+    workspaces {
+      name = "production"
+    }
+  }
 }

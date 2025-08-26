@@ -1,0 +1,12 @@
+# This file is managed by Ansible. Manual changes may be overwritten.
+{% for share in samba_shares %}
+[{{ share.name }}]
+   comment = {{ share.comment }}
+   path = {{ share.path }}
+   browseable = yes
+   writable = yes
+   guest ok = no
+   valid users = {{ share.valid_users | join(' ') }}
+   create mask = 0664
+   directory mask = 0775
+{% endfor %}
