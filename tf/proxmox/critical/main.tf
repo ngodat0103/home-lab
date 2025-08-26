@@ -14,7 +14,7 @@ locals {
     private = {
       bridge_address = "192.168.99.1/24"
       bridge_name    = "private"
-      node_name = local.node_name
+      node_name      = local.node_name
       bridge_comment = "This network can't be reached from outside and is used for stateful applications."
     },
   }
@@ -43,7 +43,7 @@ module "network_default" {
   source         = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/network/private?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
   for_each       = local.network
   bridge_address = each.value.bridge_address
-  node_name = local.node_name
+  node_name      = local.node_name
   bridge_name    = each.key
   bridge_comment = each.value.bridge_comment
 }
@@ -56,61 +56,60 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   node_name    = local.node_name
   url          = each.value
 }
-module "ubuntu_server"{
-  source = "../terraform-module/proxmox/vm"
-  
-  #source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
+module "ubuntu_server" {
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
-  name = "UbuntuServer"
-  tags = ["production","storage","main"]
-  node_name = local.node_name
-  ip_address = "192.168.1.121/24"
-  hostname = "ubuntu-server.local"
-  bridge_name = "vmbr0"
-  memory = 8096
-  gateway = local.lan_gateway
-  protection = false
-  vm_id = 101
-  cpu_type = "host"
-  boot_disk_size = 256
-  cpu_cores = 4
-  public_key = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
+  name              = "UbuntuServer"
+  tags              = ["production", "storage", "main"]
+  node_name         = local.node_name
+  ip_address        = "192.168.1.121/24"
+  hostname          = "ubuntu-server.local"
+  bridge_name       = "vmbr0"
+  memory            = 8096
+  gateway           = local.lan_gateway
+  protection        = true
+  vm_id             = 101
+  cpu_type          = "host"
+  boot_disk_size    = 256
+  cpu_cores         = 4
+  public_key        = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
+  network_model     = "e1000e"
   startup_config = {
-    order  =1
-    up_delay = 10
+    order      = 1
+    up_delay   = 10
     down_delay = 10
   }
   additional_disks = {
-    data1 ={
+    data1 = {
       path_in_datastore = "/dev/disk/by-id/ata-ST500DM002-1BD142_Z3TX81A7"
-      file_format = "raw"
-      datastore_id = ""
-      interface = "virtio1"
-      size = 465
-      backup = false
+      file_format       = "raw"
+      datastore_id      = ""
+      interface         = "virtio1"
+      size              = 465
+      backup            = false
     },
-    data2 ={
+    data2 = {
       path_in_datastore = "/dev/disk/by-id/ata-HGST_HTS721010A9E630_JR10006P1SSP5F"
-      file_format = "raw"
-      datastore_id = ""
-      interface = "virtio2"
-      size = 931
-      backup = false
+      file_format       = "raw"
+      datastore_id      = ""
+      interface         = "virtio2"
+      size              = 931
+      backup            = false
     }
   }
 }
 
 #Push metrics to influxdb hosted in Ubuntu vm
 resource "proxmox_virtual_environment_metrics_server" "influxdb_server" {
-  count =  var.influxdb_token == null ? 0 : 1
-  name   = "influxdb-ubuntu-server"
-  server = "192.168.1.121"
-  port   = 8086
-  type   = "influxdb"
+  count               = var.influxdb_token == null ? 0 : 1
+  name                = "influxdb-ubuntu-server"
+  server              = "192.168.1.121"
+  port                = 8086
+  type                = "influxdb"
   influx_organization = "proxmox"
-  influx_bucket = "proxmox"
-  influx_db_proto = "http"
-  influx_token = var.influxdb_token
+  influx_bucket       = "proxmox"
+  influx_db_proto     = "http"
+  influx_token        = var.influxdb_token
 }
 
 
