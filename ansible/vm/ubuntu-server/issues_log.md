@@ -166,7 +166,7 @@ curl -sS http://192.168.30.10:8080/ | head
 ---
 
 ## Result
-![ip_result]("./docs/container_access_ok_result.png")
+![ip_result](./docs/container_access_ok_result.png)
 
 ## Persistence
 
