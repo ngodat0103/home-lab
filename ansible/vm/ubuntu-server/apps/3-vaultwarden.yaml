@@ -1,19 +1,33 @@
 - name: manage vaultwarden
-  hosts: akira-home
+  hosts: ubuntu-server
   become: yes
   vars:
-    UID: 1012
-    GID: 1012
+    UID: 1002
+    GID: 1002
     SHELL: '/bin/bash'
     HOME_DIR: '/mnt/data2/docker/vaultwarden_data'
-    domain: !vault |
-      $ANSIBLE_VAULT;1.1;AES256
-      66326239636266313037633933303432363561643131303437636430646163313061613965626537
-      3232323634666135393864306361656437346231313834340a613539656336396338613763623430
-      30646366356565306264646264623536386538353636636239656535663661623234366164313462
-      3539656164306663640a623734383262633664633131636461623039613039363166323732306130
-      39666565656131383163616662373464343565633535636535646162336535633466
-    ADMIN_TOKEN: !vault |
+    domain: "bitwarden.datrollout.dev"
+  tasks:
+  - name: Create vaultwarden user
+    ansible.builtin.user:
+      name: vaultwarden
+      state: present
+      shell: "{{SHELL}}"
+      uid: "{{UID}}"
+      home: "/mnt/data2/docker/vaultwarden_data"
+      create_home: false
+      password: '!' # not allow password login
+  - name: Create vaultwarden group
+    ansible.builtin.group:
+      name: vaultwarden
+      state: present
+      gid: "{{GID}}"
+  - name: Make sure vaultwarden is running
+    vars:
+     DATABASE_HOST: "192.168.99.2"
+     DATABASE_NAME: "vaultwarden"
+     DATABASE_PORT: "5432"
+     ADMIN_TOKEN: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       36343435643735616635343166623463303432326161353036626462353964376461363566316337
       3536663065636263313238633233653864626564373837340a353831353830373338383364393362
@@ -23,27 +37,15 @@
       33346332386337643439336138623038653266646164646363343130393335613063353164363366
       34616161346363323065323835613537613663653637343435356661393465316132376265313366
       66313639643136643332
-    VAULTWARDEN_DB_PASSWORD: !vault |
+     DATABASE_USER: "vaultwarden"
+     DATABASE_PASSWORD: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       62393836366564376431653137666164326465363531303962353666373935383733613461333337
       6131623861306562613132333034303433353063636433640a623561383135666331353933653530
       34363161643938373033663130353234303363663962306466626137363065333565663065656366
       3863343362626136620a623238356139663033323331663562653666613263313965616135303839
       30343637663836623063366439656533336339313732326362396632336336616135
-  tasks:
-  - name: Create vaultwarden user
-    ansible.builtin.user:
-      name: vaultwarden
-      state: present
-      shell: "{{SHELL}}"
-      uid: "{{UID}}"
-      password: '!' # not allow password login
-  - name: Create vaultwarden group
-    ansible.builtin.group:
-      name: vaultwarden
-      state: present
-      gid: "{{GID}}"
-  - name: Make sure vaultwarden is running
+     DATA_PATH: "/mnt/data2/docker/vaultwarden_data"
     ansible.builtin.docker_container:
       labels:
         com.github.ngodat0103.service: vaultwarden
@@ -58,7 +60,7 @@
       state: started
       restart_policy: always
       env:
-        DATABASE_URL: "postgresql://vaultwarden:{{VAULTWARDEN_DB_PASSWORD}}@192.168.30.1:5432/vaultwarden"
+        DATABASE_URL: "postgresql://{{DATABASE_USER}}:{{DATABASE_PASSWORD}}@{{DATABASE_HOST}}:{{DATABASE_PORT}}/{{DATABASE_NAME}}"
         ADMIN_TOKEN: "{{ADMIN_TOKEN}}"
         SIGNUPS_ALLOWED: 'false'
         PUSH_ENABLED: 'true'
@@ -69,14 +71,14 @@
       - name: runtime-network
         ipv4_address: 192.168.30.3
       volumes:
-       - /home/akira/docker/vaultwarden_data:/data/
+       - "{{DATA_PATH}}:/data/"
   - name: Make sure backup.sh is present
     become_user: vaultwarden
     ansible.builtin.copy:
      src: files/vaultwarden-backup.sh
      dest: "{{HOME_DIR}}/backup.sh"
      mode: "500"
-  - name: Cron backup.sh
+  - name: Cron Backup
     become_user: vaultwarden
     ansible.builtin.cron:
       name: "Daily backup at 1AM"

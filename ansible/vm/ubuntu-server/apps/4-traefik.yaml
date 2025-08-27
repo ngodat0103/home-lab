@@ -1,9 +1,9 @@
 - name: manage traefik
-  hosts: akira-home
+  hosts: ubuntu-server
   become: yes
   vars:
-   id: "1010"
-   docker_group_id: "119"
+   id: 1010
+   docker_group_id: 999
    email: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           38373931356566356163343163643935623937666435633838373238376132653961373162326133
@@ -38,7 +38,7 @@
       state: directory
       owner: "{{id}}"
       group: "{{id}}"
-      mode: '600'
+      mode: '700'
    - name: Create traefik configuration file
      ansible.builtin.copy:
       src: files/traefik.yaml
@@ -58,15 +58,12 @@
         CF_API_EMAIL: "{{email}}"
       networks:
         - name: runtime-network
-          ipv4_address: 192.168.30.50
+          ipv4_address: "192.168.30.50"
       published_ports:
-        - "80:30080"
-        - "443:30443"
+        - "192.168.1.121:80:30080"
+        - "192.168.1.121:443:30443"
       volumes:
        - /var/run/docker.sock:/var/run/docker.sock:ro
-       - /etc/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
-       - /etc/traefik/dynamic.yaml:/etc/traefik/dynamic.yaml:ro
-       - /etc/traefik/acme.json:/etc/traefik/acme.json
+       - /etc/traefik/:/etc/traefik/
        - /etc/localtime:/etc/localtime:ro
        - /etc/timezone:/etc/timezone:ro
-       - /etc/traefik/certs:/etc/traefik/certs:ro

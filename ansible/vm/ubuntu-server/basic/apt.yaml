@@ -50,5 +50,6 @@
      name:
       - "net-tools"
       - "speedtest-cli"
+      - "acl"
      update_cache: true
      state: present
