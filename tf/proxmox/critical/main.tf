@@ -4,7 +4,7 @@ locals {
   lxc_templates = {
     ubuntu_2204 = "https://images.linuxcontainers.org/images/ubuntu/jammy/amd64/cloud/20250826_07:42/rootfs.tar.xz"
   }
-  
+
   vm_template = {
     #Reference: https://cloud-images.ubuntu.com/jammy/current/
     ubuntu_2204 = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
@@ -28,10 +28,16 @@ locals {
       cores                    = 4
       memory                   = 8096
       node_name                = local.node_name
-      mount_volume_size = 50 #GB
+      mount_volume_size        = 50 #GB
       vm_id                    = 100
       hostname                 = "postgresql-16.internal"
-      tags = ["production","database"]
+      tags                     = ["production", "database"]
+      protection               = true
+      startup_config = {
+        order      = 1
+        up_delay   = 10
+        down_delay = 10
+      }
     }
   }
   lan_gateway = "192.168.1.1"
@@ -71,7 +77,7 @@ module "ubuntu_server" {
   public_key        = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
   network_model     = "e1000e"
   startup_config = {
-    order      = 1
+    order      = 2
     up_delay   = 10
     down_delay = 10
   }
@@ -118,7 +124,7 @@ resource "proxmox_virtual_environment_download_file" "lxc" {
   upload_timeout = 10
 }
 module "lxc_production" {
-  source                   = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/lxc?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
+  source                   = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/lxc?ref=1a2c9b342cdee0fc3e257daf09d750d88c0e83c8"
   for_each                 = local.lxc
   ip_address               = each.value.ip_address
   gateway                  = each.value.gateway
@@ -129,11 +135,13 @@ module "lxc_production" {
   memory                   = each.value.memory
   vm_id                    = each.value.vm_id
   node_name                = each.value.node_name
-  tags = each.value.tags
+  tags                     = each.value.tags
   hostname                 = each.value.hostname
-  mount_volume_size = each.value.mount_volume_size
-  datastore_id = "local-lvm"
-  mount_volume_name = "local-lvm"
+  mount_volume_size        = each.value.mount_volume_size
+  protection               = each.value.protection
+  startup_config           = each.value.startup_config
+  datastore_id             = "local-lvm"
+  mount_volume_name        = "local-lvm"
 }
 
 
