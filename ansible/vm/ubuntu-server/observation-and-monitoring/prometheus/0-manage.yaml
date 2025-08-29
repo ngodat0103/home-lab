@@ -33,11 +33,14 @@
       name: prometheus
       image: prom/prometheus:v3.5.0@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996
       command: ['--storage.tsdb.retention.time=14d','--config.file=/etc/prometheus/prometheus.yml']
-      
       memory: 128M
       cpus: 0.5
       state: started
       restart_policy: always
+      healthcheck:
+       # wget -O-  http://192.168.30.4:9090/-/healthy
+       test: ['CMD','wget','-O-','http://127.0.0.1:9090/-/healthy']
+       retries: 3
       user: "{{uid}}"
       volumes:
         - "{{prometheus_data_dir}}:/prometheus"
