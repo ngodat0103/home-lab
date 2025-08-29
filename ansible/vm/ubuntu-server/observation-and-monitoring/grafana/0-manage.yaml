@@ -60,8 +60,11 @@
     - dashboard_id: 1860
       revision_id: 41
       datasource: "{{node_exporter_datasource_name}}"
+    - dashboard_id: 10530
+      revision_id: 7
+      datasource: "{{node_exporter_datasource_name}}"
   roles:
-   - name: grafana.grafana.grafana
+   - name: grafana.grafana.grafana #5.6.0
   tasks:
    - name: Configure smtp
      tags: configure-email
