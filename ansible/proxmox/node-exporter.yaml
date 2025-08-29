@@ -1,0 +1,8 @@
+- name: Deploy node exporter
+  hosts: proxmox-server
+  # ansible-galaxy collection install prometheus.prometheus:0.27.0
+  # https://github.com/prometheus-community/ansible/tree/0.27.0/roles/node_exporter
+  roles:
+   - prometheus.prometheus.node_exporter
+
+   

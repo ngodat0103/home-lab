@@ -1,5 +1,0 @@
-host duc-ubuntu-vm
-        hostname duc-spring.ngodat0103.live
-        user duc
-        port 8022
-        IdentityFile ~/.ssh/duc/id-rsa

@@ -4,7 +4,6 @@
   hosts: ubuntu-server
   become: yes
   vars:
-   default_influxdb_datasource_name: 'pve-master'
    grafana_alert_resources: 
     contactPoints:
       - orgId: 1
@@ -16,11 +15,6 @@
               addresses: ngovuminhdat@gmail.com
               singleEmail: true
    grafana_provisioning_sync: true
-   grafana_dashboards:
-       # https://grafana.com/grafana/dashboards/10048-proxmox/
-    - dashboard_id: 10048
-      revision_id: 4
-      datasource: "{{default_influxdb_datasource_name}}"
    grafana_security:
     admin_user: akira
     admin_password: !vault |
@@ -41,8 +35,11 @@
           39613136633230376130666162346538313635396362366533383536386633376437343562303335
           63633137656662393762626661326161393465343736353761613538363430373637643836653263
           6266
+
+   influxdb_datasource_name: 'pve-master'
+   node_exporter_datasource_name: pve-master-node-exporter
    grafana_datasources:
-    - name: "{{default_influxdb_datasource_name}}"
+    - name: "{{influxdb_datasource_name}}"
       type: influxdb
       url: 'http://127.0.0.1:8086'
       basicAuth: false
@@ -51,6 +48,18 @@
       secureJsonData:
        httpHeaderValue1: "Token {{influxdb_api_token}}"
       database: proxmox # Need to create database in influxdb first using: influxdb3 create database pve-master
+    - name: "{{node_exporter_datasource_name}}"
+      type: prometheus
+      url: http://192.168.30.4:9090
+      basicAuth: false
+   grafana_dashboards:
+       # https://grafana.com/grafana/dashboards/10048-proxmox/
+    - dashboard_id: 10048
+      revision_id: 4
+      datasource: "{{influxdb_datasource_name}}"
+    - dashboard_id: 1860
+      revision_id: 41
+      datasource: "{{node_exporter_datasource_name}}"
   roles:
    - name: grafana.grafana.grafana
   tasks:

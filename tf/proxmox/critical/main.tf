@@ -39,6 +39,26 @@ locals {
         down_delay = 10
       }
     }
+    shinobi = {
+      ip_address               = "192.168.99.3/24"
+      gateway                  = "192.168.99.1"
+      network_interface_name   = "eth0"
+      network_interface_bridge = "private"
+      template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
+      cores                    = 4
+      memory                   = 8096
+      node_name                = local.node_name
+      mount_volume_size        = 30
+      vm_id                    = 102
+      hostname                 = "shinobi.internal"
+      tags                     = ["production", "observation-and-monitoring"]
+      protection               = true
+      startup_config = {
+        order      = 3
+        up_delay   = 10
+        down_delay = 10
+      }
+    }
   }
   lan_gateway = "192.168.1.1"
 }

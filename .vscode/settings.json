@@ -2,7 +2,16 @@
         "yaml.schemas": {
                 "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": [
                         "file:///home/akira/code/home-lab/ansible/services/main.yaml",
-                        "file:///home/akira/code/home-lab/ansible/nfs/1-nfs-linux.yaml"
+                        "file:///home/akira/code/home-lab/ansible/nfs/1-nfs-linux.yaml",
+                        "file:///home/akira/code/home-lab/ansible/nfs/0-samba.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/samba.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/observation%20and%20monitoring/grafana/0-manage.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/observation-and-monitoring/grafana/0-manage.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/0-network.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/2-qbittorrent.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/iptables.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/3-vaultwarden.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/4-traefik.yaml"
                 ],
                 "https://json.schemastore.org/traefik-v2.json": "file:///home/akira/code/home-lab/ansible/docker/services/files/traefik.yaml",
                 "https://json.schemastore.org/github-action.json": "file:///home/akira/code/home-lab/.github/ci.yaml",
@@ -29,8 +38,11 @@
                 ],
                 "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/appproject_v1alpha1.json": [
                         "**/argocd/projects/*.yaml"
-                ], 
-                "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/applicationset_v1alpha1.json": ["**/application-set.yaml"]
+                ],
+                "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/applicationset_v1alpha1.json": [
+                        "**/application-set.yaml"
+                ],
+                "https://raw.githubusercontent.com/canonical/cloud-init/refs/tags/25.1.2/cloudinit/config/schemas/schema-cloud-config-v1.json": ["**/cloud-init/*.yaml"]
         },
-        "ansible.python.interpreterPath": "/usr/bin/python3.12",
+        "ansible.python.interpreterPath": "/bin/python3",
 }
