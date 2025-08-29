@@ -15,9 +15,9 @@
       path: "/mnt/data2"
       src: "/dev/vdc1"
       state: mounted
-  - name: "Mount vdc2 for timeshift program"
+  - name: "Mount vdc2 for recovery directory"
     ansible.posix.mount:
       fstype: ext4
-      path: /mnt/history
+      path: /mnt/recovery
       src: /dev/vdc2
       state: mounted

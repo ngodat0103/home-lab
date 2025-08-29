@@ -2,9 +2,9 @@
 locals {
   #Source: https://images.linuxcontainers.org/
   lxc_templates = {
-    # alpine_3_22 = "https://images.linuxcontainers.org/images/alpine/3.22/amd64/tinycloud/20250818_13:00/rootfs.tar.xz"
-    ubuntu_2204 = "https://images.linuxcontainers.org/images/ubuntu/noble/amd64/cloud/20250821_07%3A42/rootfs.tar.xz"
+    ubuntu_2204 = "https://images.linuxcontainers.org/images/ubuntu/jammy/amd64/cloud/20250826_07:42/rootfs.tar.xz"
   }
+
   vm_template = {
     #Reference: https://cloud-images.ubuntu.com/jammy/current/
     ubuntu_2204 = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
@@ -18,27 +18,50 @@ locals {
       bridge_comment = "This network can't be reached from outside and is used for stateful applications."
     },
   }
-  # lxc = {
-  #   postgresql_16 = {
-  #     ip_address               = "192.168.99.2/24"
-  #     gateway                  = "192.168.99.1"
-  #     network_interface_name   = "eth0"
-  #     network_interface_bridge = "private"
-  #     template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
-  #     cores                    = 4
-  #     memory                   = 8096
-  #     node_name                = local.node_name
-  #     mount_volume_size = 50 #GB
-  #     vm_id                    = 100
-  #     hostname                 = "postgresql-16.internal"
-  #     tags = ["production","storage"]
-  #   }
-  # }
-
+  lxc = {
+    postgresql_16 = {
+      ip_address               = "192.168.99.2/24"
+      gateway                  = "192.168.99.1"
+      network_interface_name   = "eth0"
+      network_interface_bridge = "private"
+      template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
+      cores                    = 4
+      memory                   = 8096
+      node_name                = local.node_name
+      mount_volume_size        = 50 #GB
+      vm_id                    = 100
+      hostname                 = "postgresql-16.internal"
+      tags                     = ["production", "database"]
+      protection               = true
+      startup_config = {
+        order      = 1
+        up_delay   = 10
+        down_delay = 10
+      }
+    }
+    shinobi = {
+      ip_address               = "192.168.99.3/24"
+      gateway                  = "192.168.99.1"
+      network_interface_name   = "eth0"
+      network_interface_bridge = "private"
+      template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
+      cores                    = 4
+      memory                   = 8096
+      node_name                = local.node_name
+      mount_volume_size        = 30
+      vm_id                    = 102
+      hostname                 = "shinobi.internal"
+      tags                     = ["production", "observation-and-monitoring"]
+      protection               = true
+      startup_config = {
+        order      = 3
+        up_delay   = 10
+        down_delay = 10
+      }
+    }
+  }
   lan_gateway = "192.168.1.1"
 }
-
-
 module "network_default" {
   source         = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/network/private?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
   for_each       = local.network
@@ -47,7 +70,6 @@ module "network_default" {
   bridge_name    = each.key
   bridge_comment = each.value.bridge_comment
 }
-
 resource "proxmox_virtual_environment_download_file" "vm" {
   for_each     = local.vm_template
   file_name    = "${each.key}.qcow2"
@@ -60,7 +82,7 @@ module "ubuntu_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
-  tags              = ["production", "storage", "main"]
+  tags              = ["production", "fileStorage", "main"]
   node_name         = local.node_name
   ip_address        = "192.168.1.121/24"
   hostname          = "ubuntu-server.local"
@@ -75,7 +97,7 @@ module "ubuntu_server" {
   public_key        = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
   network_model     = "e1000e"
   startup_config = {
-    order      = 1
+    order      = 2
     up_delay   = 10
     down_delay = 10
   }
@@ -112,36 +134,34 @@ resource "proxmox_virtual_environment_metrics_server" "influxdb_server" {
   influx_token        = var.influxdb_token
 }
 
-
-
-
-
-# resource "proxmox_virtual_environment_download_file" "lxc" {
-#   for_each       = local.lxc_templates
-#   file_name      = "${each.key}.tar.xz"
-#   datastore_id   = "local"
-#   content_type   = "vztmpl"
-#   node_name      = local.node_name
-#   url            = each.value
-#   upload_timeout = 10
-# }
-# module "lxc_production" {
-#   source                   = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/lxc?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
-#   for_each                 = local.lxc
-#   ip_address               = each.value.ip_address
-#   gateway                  = each.value.gateway
-#   network_interface_name   = each.value.network_interface_name
-#   template_file_id         = each.value.template_file_id
-#   network_interface_bridge = each.value.network_interface_bridge
-#   cores                    = each.value.cores
-#   memory                   = each.value.memory
-#   vm_id                    = each.value.vm_id
-#   node_name                = each.value.node_name
-#   tags = each.value.tags
-#   hostname                 = each.value.hostname
-#   mount_volume_size = each.value.mount_volume_size
-#   datastore_id = "local-lvm"
-#   mount_volume_name = "local-lvm"
-# }
+resource "proxmox_virtual_environment_download_file" "lxc" {
+  for_each       = local.lxc_templates
+  file_name      = "${each.key}.tar.xz"
+  datastore_id   = "local"
+  content_type   = "vztmpl"
+  node_name      = local.node_name
+  url            = each.value
+  upload_timeout = 10
+}
+module "lxc_production" {
+  source                   = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/lxc?ref=1a2c9b342cdee0fc3e257daf09d750d88c0e83c8"
+  for_each                 = local.lxc
+  ip_address               = each.value.ip_address
+  gateway                  = each.value.gateway
+  network_interface_name   = each.value.network_interface_name
+  template_file_id         = each.value.template_file_id
+  network_interface_bridge = each.value.network_interface_bridge
+  cores                    = each.value.cores
+  memory                   = each.value.memory
+  vm_id                    = each.value.vm_id
+  node_name                = each.value.node_name
+  tags                     = each.value.tags
+  hostname                 = each.value.hostname
+  mount_volume_size        = each.value.mount_volume_size
+  protection               = each.value.protection
+  startup_config           = each.value.startup_config
+  datastore_id             = "local-lvm"
+  mount_volume_name        = "local-lvm"
+}
 
 

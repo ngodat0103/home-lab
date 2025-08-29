@@ -1,0 +1,11 @@
+- name: Manage client authentication method
+  hosts: postgresql-16
+  become: yes
+  vars:
+   PG_HBA_PATH: '/etc/postgresql/16/main/pg_hba.conf'
+  tasks:
+   - name: Allow vaultwarden from runtime-network to access database using host method
+     ansible.builtin.lineinfile:
+     #       TYPE  DATABASE        USER            ADDRESS                 METHOD
+      line: "host    vaultwarden     vaultwarden     192.168.1.121/32         scram-sha-256"
+      dest: "{{PG_HBA_PATH}}"
