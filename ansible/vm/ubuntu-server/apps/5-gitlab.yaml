@@ -1,0 +1,76 @@
+- name: manage gitlab
+  hosts: ubuntu-server
+  become: yes
+  vars:
+   GITLAB_HOME_DIR: "/mnt/data2/gitlab"
+   GITLAB_BACKUP_DIR: "/mnt/recovery/cloud/gitlab"
+   domain: gitlab.datrollout.dev
+  tasks:
+  - name: Make sure Gitlab is running
+    vars:
+     db_username: gitlab
+     db_database: gitlabhq_production
+     db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36353335306266373762666564636633353863393364383863373934313931313738623038366539
+          6437363166656134616630303163326261326533663533640a656138666435326135336466386263
+          66663266323664343864343236343965366231313336613365393036396536633761353162356430
+          3337333033356562640a653061333064616230613265663732336161366335363031323334653763
+          3038
+     db_host: '192.168.99.2'
+    ansible.builtin.docker_container:
+      labels:
+        com.github.ngodat0103.service: gitlab
+        traefik.enable: "true"
+        traefik.http.routers.gitlab.rule: "Host(`{{domain}}`)"
+        traefik.http.routers.gitlab.tls.certResolver: "letsencrypt"
+        traefik.http.routers.gitlab.tls: "true"
+        traefik.http.services.gitlab.loadbalancer.server.port: "80"
+        traefik.tcp.services.gitlab-ssh-service.loadbalancer.server.port: "22"
+        traefik.tcp.services.gitlab-ssh-service.loadbalancer.server.tls: "false"
+        traefik.tcp.routers.gitlab-ssh-router.rule: "HostSNI(`*`)"
+        traefik.tcp.routers.gitlab-ssh-router.entrypoints: "ssh"
+        traefik.tcp.routers.gitlab-ssh-router.tls.passthrough: "true"
+        traefik.tcp.routers.gitlab-ssh-router.tls: "false"
+        traefik.tcp.routers.gitlab-ssh-router.service: "gitlab-ssh-service"
+      name: gitlab
+      image: gitlab/gitlab-ee:17.5.5-ee.0@sha256:e7fd00e79bd0412b2fdc6cfdbded2eaefc43186ab9427d9aa881aec9b205a8da
+      state: started
+      restart_policy: always
+      log_driver: 'json-file'
+      log_options:
+       max-size: 1024m
+       max-file: 2
+      env:
+        GITLAB_OMNIBUS_CONFIG: |
+          external_url "https://{{domain}}"
+          nginx['listen_port'] = 80
+          nginx['listen_https'] = false
+          gitlab_rails['trusted_proxies'] = ['192.168.30.50/32']
+          gitlab_rails['db_adapter'] = "postgresql"
+          gitlab_rails['db_encoding'] = "unicode"
+          gitlab_rails['db_database'] = "{{db_database}}"
+          gitlab_rails['db_username'] = "{{db_username}}"
+          gitlab_rails['db_password'] = "{{db_password}}"
+          gitlab_rails['db_host'] = "{{db_host}}"
+      networks:
+      - name: runtime-network
+        ipv4_address: '192.168.30.20'
+      volumes:
+        - "{{GITLAB_HOME_DIR}}/data:/var/opt/gitlab"
+        - "{{GITLAB_HOME_DIR}}/log:/var/log/gitlab"
+        - "{{GITLAB_HOME_DIR}}/config:/etc/gitlab"
+        - "{{GITLAB_BACKUP_DIR}}:/var/opt/gitlab/backups"
+        - /etc/localtime:/etc/localtime:ro
+        - /etc/timezone:/etc/timezone:ro
+  - name: Make sure backup script is present
+    ansible.builtin.copy:
+     src: files/gitlab-backup.sh
+     dest: "{{GITLAB_HOME_DIR}}/backup.sh"
+     mode: 500
+  - name: Config cronjab for Gitlab backup
+    ansible.builtin.cron:
+      name: "Backup Gitlab daily at 1AM"
+      state: present
+      hour: 1
+      job: "{{GITLAB_HOME_DIR}}/backup.sh > {{GITLAB_BACKUP_DIR}}/info.log 2> {{GITLAB_BACKUP_DIR}}/error.log"
