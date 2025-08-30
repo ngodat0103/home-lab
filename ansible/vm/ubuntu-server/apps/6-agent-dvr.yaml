@@ -1,0 +1,42 @@
+- name: Manage Agent DVR
+  hosts: ubuntu-server
+  become: yes
+  vars:
+    uid: 1011
+    home_dir: /mnt/data2/agent_dvr
+  pre_tasks:
+  - name: Ensure directory is existed
+    ansible.builtin.file:
+      path: "{{home_dir}}"
+      state: directory
+      mode: "750"
+      owner: "{{uid}}"
+  - name: Create user agent_dvr
+    ansible.builtin.user:
+      name: agent_dvr
+      uid: "{{uid}}"
+      system: true
+      home: "{{home_dir}}"
+  tasks:
+  - name: Make sure Agent DVR is running
+    ansible.builtin.docker_container:
+      entrypoint: bash
+      command: >
+       -lc "set -e;
+        BASE=/home/agentdvr/AgentDVR/Media;
+        mkdir -p $BASE/XML $BASE/WebServerRoot $BASE/WebServerRoot/Media;
+        chown -R 1011:1000 $BASE/XML $BASE/WebServerRoot;
+        chmod -R u=rwX,g=rwX,o=rX $BASE/XML $BASE/WebServerRoot;
+        exec /home/agentdvr/AgentDVR/Agent.sh"
+      restart_policy: always
+      image: mekayelanik/ispyagentdvr:6.6.1.0@sha256:69b1b4f3256a97558a9bb7f6997b388d2d1e2c62de26635fd478f4640c33f655
+      name:  agent_dvr
+      env:
+       PUID: "{{1011}}"
+       PGID: "1000"
+       AGENTDVR_WEBUI_PORT: "8090" 
+      volumes:
+      - "{{home_dir}}:/AgentDVR"
+      networks:
+      - name: runtime-network
+        ipv4_address: "192.168.30.5"

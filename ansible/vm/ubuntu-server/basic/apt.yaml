@@ -53,5 +53,6 @@
       - acl
       - iptables-persistent
       - bridge-utils
+      - nmap
      update_cache: true
      state: present
