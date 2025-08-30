@@ -35,9 +35,8 @@
           39613136633230376130666162346538313635396362366533383536386633376437343562303335
           63633137656662393762626661326161393465343736353761613538363430373637643836653263
           6266
-
-   influxdb_datasource_name: 'pve-master'
-   node_exporter_datasource_name: pve-master-node-exporter
+   influxdb_datasource_name: 'influxdb-ubuntu-server'
+   prometheus_datasource_name: prometheus-ubuntu-server
    grafana_datasources:
     - name: "{{influxdb_datasource_name}}"
       type: influxdb
@@ -48,7 +47,7 @@
       secureJsonData:
        httpHeaderValue1: "Token {{influxdb_api_token}}"
       database: proxmox # Need to create database in influxdb first using: influxdb3 create database pve-master
-    - name: "{{node_exporter_datasource_name}}"
+    - name: "{{prometheus_datasource_name}}"
       type: prometheus
       url: http://192.168.30.4:9090
       basicAuth: false
@@ -59,10 +58,13 @@
       datasource: "{{influxdb_datasource_name}}"
     - dashboard_id: 1860
       revision_id: 41
-      datasource: "{{node_exporter_datasource_name}}"
+      datasource: "{{prometheus_datasource_name}}"
     - dashboard_id: 10530
       revision_id: 7
-      datasource: "{{node_exporter_datasource_name}}"
+      datasource: "{{prometheus_datasource_name}}"
+    - dashboard_id: 17346
+      revision_id: 9
+      datasource: "{{prometheus_datasource_name}}"
   roles:
    - name: grafana.grafana.grafana #5.6.0
   tasks:

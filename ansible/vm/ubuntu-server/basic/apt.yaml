@@ -48,8 +48,10 @@
   - name: "Make sure my networking tools installed"
     ansible.builtin.apt:
      name:
-      - "net-tools"
-      - "speedtest-cli"
-      - "acl"
+      - net-tools
+      - speedtest-cli
+      - acl
+      - iptables-persistent
+      - bridge-utils
      update_cache: true
      state: present
