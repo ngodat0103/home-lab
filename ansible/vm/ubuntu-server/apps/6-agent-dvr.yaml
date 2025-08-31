@@ -6,8 +6,9 @@
     home_dir: /mnt/data2/agent_dvr
   pre_tasks:
   - name: Ensure directory is existed
+    loop: ["{{home_dir}}","{{home_dir}}/Commands"]
     ansible.builtin.file:
-      path: "{{home_dir}}"
+      path: "{{item}}"
       state: directory
       mode: "750"
       owner: "{{uid}}"
@@ -20,6 +21,8 @@
   tasks:
   - name: Make sure Agent DVR is running
     ansible.builtin.docker_container:
+      memory: 512M
+      recreate: true
       entrypoint: bash
       command: >
        -lc "set -e;
@@ -35,8 +38,10 @@
        PUID: "{{1011}}"
        PGID: "1000"
        AGENTDVR_WEBUI_PORT: "8090" 
+       TZ: Asia/Ho_Chi_Minh # This sourcecode in container only work with ENV
       volumes:
-      - "{{home_dir}}:/AgentDVR"
+      - "{{home_dir}}:/home/agentdvr/AgentDVR/Media"
+      - "{{home_dir}}/Commands:/home/agentdvr/AgentDVR/Commands"
       networks:
       - name: runtime-network
         ipv4_address: "192.168.30.5"

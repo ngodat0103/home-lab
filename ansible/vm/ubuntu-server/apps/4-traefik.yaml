@@ -49,7 +49,7 @@
    - name: Make sure traefik is running
      ansible.builtin.docker_container:
       name: traefik
-      image: traefik:v3.3.3
+      image: traefik:v3.5.1@sha256:664bb8415fddadb71c2682b329c427d12c7d53593171665f2b7b6ff924509bc1
       state: started
       user: "{{id}}:{{docker_group_id}}"
       restart_policy: always
