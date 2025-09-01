@@ -1,7 +1,7 @@
-# 🚀 Kubernetes Cluster Deployment with Kubespray
+# 🚀 Kubernetes Cluster Deployment with Kubespray [(v.28.0)](https://github.com/kubernetes-sigs/kubespray/tree/v2.28.1)
 
 ## 1. Requirements
-- Kubernetes infrastructure has already been provisioned using [Terraform](../../tf/proxmox/main.tf).  
+- Kubernetes infrastructure has already been provisioned using [Terraform](https://github.com/ngodat0103/home-lab/blob/78b9e58daded8fd905d2746e037d1dfddbe6eb6e/tf/proxmox/main.tf#L149-L194).  
   👉 Ensure the VMs are created and reachable via SSH before continuing.  
 
 ![Proxmox Infrastructure](docs/proxmox.png)
