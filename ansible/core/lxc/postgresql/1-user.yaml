@@ -1,0 +1,16 @@
+- name: "Manage user"
+  hosts: "postgresql-16"
+  become: yes
+  handlers:
+  - name: restart-sshd
+    ansible.builtin.service:
+      name: "{{ 'ssh' if ansible_facts['os_family'] == 'Debian' else 'sshd' }}"
+      state: restarted
+  tasks:
+  - name: "Make sure user vaultwarden is existed"
+    ansible.builtin.user:
+      name: vaultwarden
+      uid: 1002
+      password: "!"
+      shell: /bin/bash
+      state: present

@@ -1,0 +1,120 @@
+---
+# Tests for contrib/terraform/
+.terraform_install:
+  extends: .job
+  needs:
+    - pipeline-image
+  variables:
+    TF_VAR_public_key_path: "${ANSIBLE_PRIVATE_KEY_FILE}.pub"
+    TF_VAR_ssh_private_key_path: $ANSIBLE_PRIVATE_KEY_FILE
+    CLUSTER: $CI_COMMIT_REF_NAME
+    TERRAFORM_STATE_ROOT: $CI_PROJECT_DIR
+  stage: deploy-part1
+  before_script:
+    - ./tests/scripts/rebase.sh
+    - mkdir -p cluster-dump $ANSIBLE_INVENTORY
+    - ./tests/scripts/terraform_install.sh
+    - cp contrib/terraform/$PROVIDER/sample-inventory/cluster.tfvars .
+    - ln -rs -t $ANSIBLE_INVENTORY contrib/terraform/$PROVIDER/hosts
+    - terraform -chdir="contrib/terraform/$PROVIDER" init
+
+terraform_validate:
+  extends: .terraform_install
+  tags: [ffci]
+  only: ['master', /^pr-.*$/]
+  script:
+    - terraform -chdir="contrib/terraform/$PROVIDER" validate
+    - terraform -chdir="contrib/terraform/$PROVIDER" fmt -check -diff
+  stage: test
+  needs:
+    - pipeline-image
+  parallel:
+    matrix:
+      - PROVIDER:
+          - openstack
+          - aws
+          - exoscale
+          - hetzner
+          - vsphere
+          - upcloud
+          - nifcloud
+
+.terraform_apply:
+  extends: .terraform_install
+  tags: [ffci]
+  stage: deploy-extended
+  when: manual
+  only: [/^pr-.*$/]
+  variables:
+    ANSIBLE_INVENTORY_UNPARSED_FAILED: "true"
+    ANSIBLE_REMOTE_USER: ubuntu # the openstack terraform module does not handle custom user correctly
+    ANSIBLE_SSH_RETRIES: 15
+    TF_VAR_ssh_user: $ANSIBLE_REMOTE_USER
+    TF_VAR_cluster_name: $CI_JOB_ID
+  script:
+    # Set Ansible config
+    - cp ansible.cfg ~/.ansible.cfg
+    - ssh-keygen -N '' -f $ANSIBLE_PRIVATE_KEY_FILE -t rsa
+    - mkdir -p contrib/terraform/$PROVIDER/group_vars
+    # Random subnet to avoid routing conflicts
+    - export TF_VAR_subnet_cidr="10.$(( $RANDOM % 256 )).$(( $RANDOM % 256 )).0/24"
+    - terraform -chdir="contrib/terraform/$PROVIDER" apply -auto-approve -parallelism=1
+    - tests/scripts/testcases_run.sh
+  after_script:
+    # Cleanup regardless of exit code
+    - terraform -chdir="contrib/terraform/$PROVIDER" destroy -auto-approve
+
+# Elastx is generously donating resources for Kubespray on Openstack CI
+# Contacts: @gix @bl0m1
+.elastx_variables: &elastx_variables
+  OS_AUTH_URL: https://ops.elastx.cloud:5000
+  OS_PROJECT_ID: 564c6b461c6b44b1bb19cdb9c2d928e4
+  OS_PROJECT_NAME: kubespray_ci
+  OS_USER_DOMAIN_NAME: Default
+  OS_PROJECT_DOMAIN_ID: default
+  OS_USERNAME: kubespray@root314.com
+  OS_REGION_NAME: se-sto
+  OS_INTERFACE: public
+  OS_IDENTITY_API_VERSION: "3"
+  TF_VAR_router_id: "ab95917c-41fb-4881-b507-3a6dfe9403df"
+
+tf-elastx_cleanup:
+  tags: [ffci]
+  image: python
+  variables:
+    <<: *elastx_variables
+  before_script:
+    - pip install -r scripts/openstack-cleanup/requirements.txt
+  script:
+    - ./scripts/openstack-cleanup/main.py
+  allow_failure: true
+
+tf-elastx_ubuntu20-calico:
+  extends: .terraform_apply
+  stage: deploy-part1
+  when: on_success
+  allow_failure: true
+  variables:
+    <<: *elastx_variables
+    PROVIDER: openstack
+    ANSIBLE_TIMEOUT: "60"
+    TF_VAR_number_of_k8s_masters: "1"
+    TF_VAR_number_of_k8s_masters_no_floating_ip: "0"
+    TF_VAR_number_of_k8s_masters_no_floating_ip_no_etcd: "0"
+    TF_VAR_number_of_etcd: "0"
+    TF_VAR_number_of_k8s_nodes: "1"
+    TF_VAR_number_of_k8s_nodes_no_floating_ip: "0"
+    TF_VAR_number_of_gfs_nodes_no_floating_ip: "0"
+    TF_VAR_number_of_bastions: "0"
+    TF_VAR_number_of_k8s_masters_no_etcd: "0"
+    TF_VAR_floatingip_pool: "elx-public1"
+    TF_VAR_dns_nameservers: '["1.1.1.1", "8.8.8.8", "8.8.4.4"]'
+    TF_VAR_use_access_ip: "0"
+    TF_VAR_external_net: "600b8501-78cb-4155-9c9f-23dfcba88828"
+    TF_VAR_network_name: "ci-$CI_JOB_ID"
+    TF_VAR_az_list: '["sto1"]'
+    TF_VAR_az_list_node: '["sto1"]'
+    TF_VAR_flavor_k8s_master: 3f73fc93-ec61-4808-88df-2580d94c1a9b    # v1-standard-2
+    TF_VAR_flavor_k8s_node: 3f73fc93-ec61-4808-88df-2580d94c1a9b      # v1-standard-2
+    TF_VAR_image: ubuntu-20.04-server-latest
+    TF_VAR_k8s_allowed_remote_ips: '["0.0.0.0/0"]'
