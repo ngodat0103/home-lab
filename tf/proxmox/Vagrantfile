@@ -23,8 +23,5 @@ Vagrant.configure("2") do |config|
   config.persistent_storage.size = 1024*70
   # vagrant plugin install vagrant-persistent-storage
   # github: https://github.com/kusnier/vagrant-persistent-storage
-  
-  
-
   config.vm.provision "shell" , path: "./provision.sh", privileged: true
 end
