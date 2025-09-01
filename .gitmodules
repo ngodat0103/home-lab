@@ -10,6 +10,6 @@
 [submodule "tf/cloudflare/terraform-module"]
 	path = tf/cloudflare/terraform-module
 	url = https://github.com/ngodat0103/terraform-module.git
-[submodule "ansible/kubespray"]
-	path = ansible/kubespray
+[submodule "ansible/kubernetes/kubespray"]
+	path = ansible/kubernetes/kubespray
 	url = https://github.com/kubernetes-sigs/kubespray.git
