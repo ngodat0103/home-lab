@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: postgresql-client
+  author: your_name
+  description: Install PostgreSQL client (pg_dump, psql) of a specific version from PGDG repo
+  license: MIT
+  min_ansible_version: "2.11"
+  platforms:
+    - name: Debian
+      versions: [buster, bullseye, bookworm]
+    - name: Ubuntu
+      versions: [focal, jammy, noble]

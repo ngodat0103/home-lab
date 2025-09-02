@@ -1,0 +1,39 @@
+- name: Upload all tar-backup to Google drive using Restic
+  hosts: ubuntu-server
+  become: yes
+  vars:
+    RESTIC_HOME_DIR: "/root/restic"
+  pre_tasks:
+   - name: Make sure restic directory existed
+     ansible.builtin.file:
+      dest: "{{RESTIC_HOME_DIR}}"
+      state: directory
+      mode: "700"
+   - name: Make sure rclone and jq is installed
+     ansible.builtin.apt:
+      name: [rclone,jq]
+      update_cache: true
+   - name: Make sure rclone.conf is existed
+     ansible.builtin.copy:
+      src: files/rclone.conf
+      dest: ~/.config/rclone/rclone.conf
+      mode: "600"
+      owner: root
+   - name: Make sure password is existed
+     ansible.builtin.copy:
+      src: files/restic_password.txt
+      dest: /root/restic/password.txt
+      mode: "400"
+      owner: root
+  tasks:
+  - name: Make sure script is present
+    ansible.builtin.copy:
+      src: files/background-job.sh
+      mode: 600
+      dest: "{{RESTIC_HOME_DIR}}/background-job.sh"
+  - name: Crontab to run backup at 1:30 AM
+    ansible.builtin.cron:
+      name: Upload to cloud cronjob
+      hour: 1
+      minute: 30
+      job: "{{RESTIC_HOME_DIR}}/background-job.sh aerith-gdrive >> {{RESTIC_HOME_DIR}}/info.log 2>> {{RESTIC_HOME_DIR}}/error.log"

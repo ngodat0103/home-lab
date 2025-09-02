@@ -11,7 +11,9 @@
                         "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/2-qbittorrent.yaml",
                         "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/iptables.yaml",
                         "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/3-vaultwarden.yaml",
-                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/4-traefik.yaml"
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/4-traefik.yaml",
+                        "file:///home/akira/code/home-lab/ansible/vm/ubuntu-server/apps/5-gitlab.yaml",
+                        "file:///home/akira/code/home-lab/ansible/proxmox/repositories.yaml"
                 ],
                 "https://json.schemastore.org/traefik-v2.json": "file:///home/akira/code/home-lab/ansible/docker/services/files/traefik.yaml",
                 "https://json.schemastore.org/github-action.json": "file:///home/akira/code/home-lab/.github/ci.yaml",
@@ -42,7 +44,9 @@
                 "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/argoproj.io/applicationset_v1alpha1.json": [
                         "**/application-set.yaml"
                 ],
-                "https://raw.githubusercontent.com/canonical/cloud-init/refs/tags/25.1.2/cloudinit/config/schemas/schema-cloud-config-v1.json": ["**/cloud-init/*.yaml"]
+                "https://raw.githubusercontent.com/canonical/cloud-init/refs/tags/25.1.2/cloudinit/config/schemas/schema-cloud-config-v1.json": [
+                        "**/cloud-init/*.yaml"
+                ]
         },
         "ansible.python.interpreterPath": "/bin/python3",
 }
