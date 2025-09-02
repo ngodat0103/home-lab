@@ -48,5 +48,7 @@
       - iptables-persistent
       - bridge-utils
       - nmap
+      - restic
+      - rclone
      update_cache: true
      state: present

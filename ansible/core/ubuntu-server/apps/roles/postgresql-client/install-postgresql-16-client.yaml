@@ -1,0 +1,46 @@
+---
+- name: Install PostgreSQL client 16 (pgdg) on Debian/Ubuntu
+  hosts: ubuntu-server
+  become: true
+  gather_facts: true
+  vars:
+    pg_major: "16"
+    pgdg_keyring_path: /etc/apt/keyrings/postgresql.gpg
+    pgdg_repo: "http://apt.postgresql.org/pub/repos/apt"
+  tasks:
+  - name: Ensure running on Debian/Ubuntu family
+    ansible.builtin.assert:
+      that:
+      - ansible_facts.os_family == "Debian"
+      fail_msg: "This playbook supports Debian/Ubuntu only."
+  - name: Ensure keyrings directory exists
+    ansible.builtin.file:
+      path: /etc/apt/keyrings
+      state: directory
+      mode: "0755"
+  - name: Fetch PostgreSQL APT signing key to keyring (dearmored)
+    ansible.builtin.get_url:
+      url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      dest: "{{ pgdg_keyring_path }}"
+      mode: "0644"
+  - name: Add PGDG repository (uses distro codename)
+    ansible.builtin.apt_repository:
+      repo: "deb [signed-by={{ pgdg_keyring_path }}] {{ pgdg_repo }} {{ ansible_facts.distribution_release }}-pgdg main"
+      filename: "pgdg"
+      state: present
+      update_cache: yes
+  - name: Install PostgreSQL client {{ pg_major }}
+    ansible.builtin.apt:
+      name: "postgresql-client-{{ pg_major }}"
+      state: present
+      update_cache: yes
+  - name: Verify pg_dump version is {{ pg_major }}.*
+    ansible.builtin.command: pg_dump --version
+    register: pg_dump_version
+    changed_when: false
+  - name: Assert pg_dump version is {{ pg_major }}
+    ansible.builtin.assert:
+      that:
+      - pg_dump_version.stdout is search("pg_dump \\(PostgreSQL\\) {{ pg_major }}\\.")
+      fail_msg: "pg_dump is not version {{ pg_major }}. Output: {{ pg_dump_version.stdout }}"
+      success_msg: "pg_dump {{ pg_major }} installed successfully."

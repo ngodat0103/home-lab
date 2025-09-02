@@ -72,6 +72,9 @@
         ipv4_address: 192.168.30.3
       volumes:
        - "{{DATA_PATH}}:/data/"
+  - name: Make sure postgresql-client is installed
+    ansible.builtin.import_role:
+      name: postgresql-client
   - name: Make sure backup.sh is present
     become_user: vaultwarden
     ansible.builtin.copy:

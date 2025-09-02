@@ -1,0 +1,4 @@
+pg_major: "16"
+pgdg_keyring_path: /etc/apt/keyrings/postgresql.asc
+pgdg_repo: "http://apt.postgresql.org/pub/repos/apt"
+
