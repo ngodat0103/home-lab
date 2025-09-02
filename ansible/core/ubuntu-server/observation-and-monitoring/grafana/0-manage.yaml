@@ -65,6 +65,9 @@
     - dashboard_id: 17346
       revision_id: 9
       datasource: "{{prometheus_datasource_name}}"
+    - dashboard_id: 14282
+      revision_id: 1
+      datasource: "{{prometheus_datasource_name}}"
   roles:
    - name: grafana.grafana.grafana #5.6.0
   tasks:

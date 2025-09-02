@@ -1,0 +1,25 @@
+- name: Manage cadvisor
+  hosts: ubuntu-server
+  vars:
+    cadvisor_image: "ghcr.io/google/cadvisor:v0.53.0@sha256:c3770bd6fc6c6a9cb2b47143e6b3cc3fdd9d20a8453dffbb7e09a145e7e0c4e4"
+    cadvisor_device: "/dev/kmsg"
+  tasks:
+  - name: Run cAdvisor container
+    ansible.builtin.docker_container:
+      name: cadvisor
+      image: "{{ cadvisor_image }}"
+      state: started
+      restart_policy: always
+      memory: 256M
+      recreate: true
+      networks:
+      - name: runtime-network
+      privileged: true
+      devices:
+      - "{{ cadvisor_device }}:{{ cadvisor_device }}"
+      volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/dev/disk/:/dev/disk:ro"
