@@ -77,8 +77,24 @@
       name: postgresql-client
   - name: Make sure backup.sh is present
     become_user: vaultwarden
+    vars:
+     PGPASSWORD: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+        30353563303133323263613432653038323833643937656438656338336162323466613135636164
+        3063646331356662356638366362343761636365623662620a363732313630353830643563623261
+        35663862623139343933316162663034373366316465633437613364336533343634316334303837
+        3463613536326438350a343337623166623863356339663336616666303831323238376431313566
+        32376433346533323462663333353332303962363433626435656639653130633835
     ansible.builtin.copy:
-     src: files/vaultwarden-backup.sh
+     content: |
+        #!/bin/bash
+        set -e
+        cd ~
+        export PGPASSWORD="{{PGPASSWORD}}"
+        pg_dump -d vaultwarden -h 192.168.99.2 -U vaultwarden > full-backup.sql
+        tar -cf vaultwarden-backup-latest.tar .
+        mv vaultwarden-backup-latest.tar /mnt/recovery/cloud
+        chmod 600 /mnt/recovery/cloud/vaultwarden-backup-latest.tar
      dest: "{{HOME_DIR}}/backup.sh"
      mode: "500"
   - name: Cron Backup
