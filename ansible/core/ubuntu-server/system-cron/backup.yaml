@@ -15,25 +15,25 @@
       update_cache: true
    - name: Make sure rclone.conf is existed
      ansible.builtin.copy:
-      src: files/rclone.conf
+      src: files/restic/rclone.conf
       dest: ~/.config/rclone/rclone.conf
       mode: "600"
       owner: root
    - name: Make sure password is existed
      ansible.builtin.copy:
-      src: files/restic_password.txt
+      src: files/restic/restic_password.txt
       dest: /root/restic/password.txt
       mode: "400"
       owner: root
   tasks:
   - name: Make sure script is present
     ansible.builtin.copy:
-      src: files/background-job.sh
+      src: files/restic/background-job.sh
       mode: 600
       dest: "{{RESTIC_HOME_DIR}}/background-job.sh"
   - name: Crontab to run backup at 1:30 AM
     ansible.builtin.cron:
       name: Upload to cloud cronjob
       hour: 1
-      minute: 30
+      minute: 15
       job: "{{RESTIC_HOME_DIR}}/background-job.sh aerith-gdrive >> {{RESTIC_HOME_DIR}}/info.log 2>> {{RESTIC_HOME_DIR}}/error.log"
