@@ -132,7 +132,7 @@ ingressClass:
   # @schema additionalProperties: false
   enabled: true
   isDefaultClass: true
-  name: ""
+  name: "traefik"
 
 core:
   # @schema additionalProperties: false
