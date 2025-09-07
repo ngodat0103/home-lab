@@ -1,14 +1,30 @@
-apiVersion: "argoproj.io/v1alpha1"
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: traefik-middlewares
+  name: traefik-ingress-controller
   namespace: argocd
 spec:
-  project: "default"
+  project: default
+  revisionHistoryLimit: 5
   destination:
-    namespace: "traefik"
-    name: "in-cluster"
-  source:
-    repoURL: "https://github.com/ngodat0103/home-lab.git"
-    targetRevision: "datnvm/argocd-dev"
-    path: "k3s/traefik/middlewares"
+    namespace: traefik
+    name: in-cluster
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+  sources:
+  - repoURL: https://traefik.github.io/charts
+    targetRevision: 37.1.0
+    chart: traefik
+    helm:
+      valueFiles:
+      - "$config/k3s/argocd/argocd-app/stateless/traefik/values.yaml"
+  - repoURL: https://github.com/ngodat0103/home-lab.git
+    targetRevision: config/continue
+    path: k3s/argocd/argocd-app/stateless/traefik/init
+    directory:
+      recurse: false
+  - repoURL: https://github.com/ngodat0103/home-lab.git
+    targetRevision: config/continue
+    ref: config

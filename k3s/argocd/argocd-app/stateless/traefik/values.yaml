@@ -690,8 +690,9 @@ additionalArguments: []
 env: []
 
 # -- Environment variables to be passed to Traefik's binary from configMaps or secrets
-envFrom: []
-
+envFrom:
+- secretRef:
+    name: traefik-secret
 ports:
   traefik:
     port: 8080
