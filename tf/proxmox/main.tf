@@ -25,8 +25,8 @@ locals {
       network_interface_name   = "eth0"
       network_interface_bridge = "private"
       template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
-      cores                    = 4
-      memory                   = 8096
+      cores                    = 1
+      memory                   = 1024*4
       node_name                = local.node_name
       mount_volume_size        = 50 #GB
       vm_id                    = 100
@@ -63,12 +63,12 @@ module "ubuntu_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
-  tags              = ["production", "fileStorage", "main"]
+  tags              = ["production", "file-storage","public-facing","reverse-proxy"]
   node_name         = local.node_name
   ip_address        = "192.168.1.121/24"
   hostname          = "ubuntu-server.local"
   bridge_name       = "vmbr0"
-  memory            = 8096
+  memory            = 1024*12
   gateway           = local.lan_gateway
   protection        = true
   vm_id             = 101
@@ -99,6 +99,29 @@ module "ubuntu_server" {
       size              = 931
       backup            = false
     }
+  }
+}
+
+module "teleport" {
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=53360d70fe4b7e165a0df761867d4965e3585de9"
+  template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
+  name              = "Teleport"
+  tags              = ["infra-access","public-facing"]
+  node_name         = local.node_name
+  ip_address        = "192.168.1.122/24"
+  hostname          = "teleport.local"
+  bridge_name       = "vmbr0"
+  memory            = 1024*2
+  gateway           = local.lan_gateway
+  protection        = false
+  boot_disk_size    = 30
+  cpu_cores         = 1
+  public_key        = file("~/OneDrive/ssh/teleport/id_rsa.pub")
+  network_model     = "e1000e"
+  startup_config = {
+    order      = 3
+    up_delay   = 60
+    down_delay = 60
   }
 }
 #Push metrics to influxdb hosted in Ubuntu vm
@@ -143,9 +166,6 @@ module "lxc_production" {
   mount_volume_name        = "local-lvm"
 }
 
-
-
-
 module "k8s_masters" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
   count             = 3
@@ -156,7 +176,7 @@ module "k8s_masters" {
   ip_address        = "192.168.1.13${count.index}/24"
   tags              = ["Development", "Kubernetes-masters"]
   gateway           = "192.168.1.1"
-  memory            = 8096
+  memory            = 4096
   cpu_cores         = 2
   node_name         = local.node_name
   boot_disk_size    = 50
@@ -180,16 +200,16 @@ module "k8s_workers" {
   tags              = ["Development", "Kubernetes-workers"]
   boot_disk_size    = 100
   gateway           = "192.168.1.1"
-  memory            = 4096
-  cpu_cores         = 6
+  memory            = 1024*8
+  cpu_cores         = 4
   node_name         = local.node_name
   datastore_id      = "local-lvm"
   bridge_name       = "vmbr0"
   vm_id             = 310 + count.index
   startup_config = {
     order      = 4
-    up_delay   = 60
-    down_delay = 60
+    up_delay   = 30
+    down_delay = 30
   }
 }
 
