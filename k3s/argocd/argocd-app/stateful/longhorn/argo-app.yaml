@@ -10,7 +10,7 @@ spec:
     name: in-cluster
     namespace: longhorn
   syncPolicy:
-    syncOptions: [ "ServerSideApply=True", "CreateNamespace=True" ]
+    syncOptions: [ "ServerSideApply=true", "CreateNamespace=true" ]
     automated:
       enabled: true
       selfHeal: true
