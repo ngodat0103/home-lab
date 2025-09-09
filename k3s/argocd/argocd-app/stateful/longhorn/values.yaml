@@ -130,7 +130,7 @@ persistence:
   # -- mkfs parameters of the default Longhorn StorageClass.
   defaultMkfsParams: ""
   # -- Replica count of the default Longhorn StorageClass.
-  defaultClassReplicaCount: 2
+  defaultClassReplicaCount: 3
   # -- Data locality of the default Longhorn StorageClass. (Options: "disabled", "best-effort")
   defaultDataLocality: disabled
   # -- Reclaim policy that provides instructions for handling of a volume after its claim is released. (Options: "Retain", "Delete")
@@ -434,10 +434,10 @@ ingress:
 
   # -- IngressClass resource that contains ingress configuration, including the name of the Ingress controller.
   # ingressClassName can replace the kubernetes.io/ingress.class annotation used in earlier Kubernetes releases.
-  ingressClassName: "traefik"
+  ingressClassName: traefik
 
   # -- Hostname of the Layer 7 load balancer.
-  host: "longhorn.datrollout.dev"
+  host: longhorn.datrollout.dev
 
   # -- Setting that allows you to enable TLS on ingress records.
   tls: false
