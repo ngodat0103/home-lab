@@ -1896,7 +1896,7 @@ server:
   name: server
 
   # -- The number of server pods to run
-  replicas: 1
+  replicas: 2
 
   # -- Runtime class name for the Argo CD server
   # @default -- `""` (defaults to global.runtimeClassName)
@@ -3334,7 +3334,7 @@ applicationSet:
 ## Notifications controller
 notifications:
   # -- Enable notifications controller
-  enabled: true
+  enabled: false ## not stable yet
 
   # -- Notifications controller name string
   name: notifications-controller
