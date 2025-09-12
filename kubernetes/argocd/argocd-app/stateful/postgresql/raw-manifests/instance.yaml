@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/postgresql.cnpg.io/cluster_v1.json
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -14,15 +15,9 @@ spec:
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
     requests:
-      memory: 4Gi
+      memory: 1Gi
     limits:
-      memory: 8Gi
-  postgresql:
-    parameters:
-      work_mem: "8MB"
-      maintenance_work_mem: "64MB"
-      shared_buffers: "2GB"
-      statement_timeout: "60"
+      memory: 4Gi
   managed:
     roles:
     - name: vaultwarden
@@ -46,7 +41,7 @@ spec:
       ensure: present
       passwordSecret:
         name: nextcloud-db
-  instances: 1
+  instances: 3
   storage:
-    size: 60Gi
-    storageClass: "local-path"
+    size: 20Gi
+    storageClass: "longhorn"
