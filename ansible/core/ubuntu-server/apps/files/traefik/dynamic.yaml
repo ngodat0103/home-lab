@@ -1,0 +1,20 @@
+http:
+  serversTransports:
+    internal-skip-verify:
+      insecureSkipVerify: true
+  routers:
+    teleport-tcp:
+      entryPoints:
+      - websecure
+      - web
+      rule: Host(`teleport.datrollout.dev`)
+      service: teleport
+      tls:
+        certResolver: letsencrypt
+  services:
+    teleport:
+      loadBalancer:
+        serversTransport: internal-skip-verify
+        passHostHeader: true
+        servers:
+        - url: https://192.168.1.122:3080

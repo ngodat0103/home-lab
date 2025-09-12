@@ -1,6 +1,10 @@
 - name: manage traefik
   hosts: ubuntu-server
   become: yes
+  handlers:
+   - name: restart
+     ansible.builtin.command:
+      cmd: ["bash","docker","restart","traefik"]
   vars:
    id: 1010
    docker_group_id: 999
@@ -41,8 +45,15 @@
       mode: '700'
    - name: Create traefik configuration file
      ansible.builtin.copy:
-      src: files/traefik.yaml
+      src: files/traefik/traefik.yaml
       dest: /etc/traefik/traefik.yaml
+      owner: "{{id}}"
+      group: "{{id}}"
+      mode: '600'
+   - name: Copy dynamic config
+     ansible.builtin.copy:
+      src: files/traefik/dynamic.yaml
+      dest: /etc/traefik/dynamic.yaml
       owner: "{{id}}"
       group: "{{id}}"
       mode: '600'

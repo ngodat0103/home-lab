@@ -20,7 +20,7 @@
 # This is a YAML-formatted file.
 # Please declare variables to be passed to your templates.
 
-replicaCount: 1
+replicaCount: 3
 
 image:
   repository: ghcr.io/cloudnative-pg/cloudnative-pg

@@ -19,10 +19,10 @@ spec:
     chart: traefik
     helm:
       valueFiles:
-      - "$config/k3s/argocd/argocd-app/stateless/traefik/values.yaml"
+      - "$config/kubernetes/argocd/argocd-app/stateless/traefik/values.yaml"
   - repoURL: https://github.com/ngodat0103/home-lab.git
     targetRevision: config/continue
-    path: k3s/argocd/argocd-app/stateless/traefik/init
+    path: kubernetes/argocd/argocd-app/stateless/traefik/init
     directory:
       recurse: false
   - repoURL: https://github.com/ngodat0103/home-lab.git

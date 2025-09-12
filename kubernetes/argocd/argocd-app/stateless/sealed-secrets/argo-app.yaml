@@ -24,5 +24,5 @@ spec:
       valueFiles:
       - "$config/k3s/argocd/argocd-app/stateless/sealed-secrets/values.yaml"
   - repoURL: "https://github.com/ngodat0103/home-lab.git"
-    targetRevision: "datnvm/argocd-dev"
+    targetRevision: "34301725aec7cc5fd5455f9786c536ba69d76d8b"
     ref: "config"
