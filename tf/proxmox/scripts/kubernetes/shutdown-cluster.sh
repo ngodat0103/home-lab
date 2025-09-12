@@ -1,12 +1,6 @@
 #!/bin/bash
 source <(curl -fsSL https://raw.githubusercontent.com/ngodat0103/common-stuff/refs/heads/main/scripts/log/log.sh)
-# pre-shutdown task, make sure to scaled pod having LongHorn volume and make sure volume is detach
 
-source <(curl -fsSL https://raw.githubusercontent.com/ngodat0103/common-stuff/refs/heads/main/scripts/longhorn/pre-shutdown-longhorn.sh)
-
-
-
-pre-shutdown-longhorn
 SHUTDOWN_K8S_CLUSTER_SCRIPT=$(cat <<'EOF'
 get_vms_by_tag() {
   local tag="$1"
@@ -25,7 +19,7 @@ shutdown_vms() {
   local vms="$1"
   for vmid in $vms; do
     echo "🔻 Shutting down VM $vmid ..."
-    qm shutdown "$vmid" &
+    qm shutdown "$vmid" --timeout 300 &
   done
   # Wait until all are stopped
   for vmid in $vms; do

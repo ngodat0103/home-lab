@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-source <(curl -fsSL https://raw.githubusercontent.com/ngodat0103/common-stuff/refs/heads/main/scripts/argocd/enable-self-heal.sh)
 START_VM_SCRIPT=$(cat <<'EOF'
 #!/bin/bash
 set -e
@@ -55,6 +54,3 @@ echo "✅ Kubernetes cluster is available."
 echo "⏳ Waiting for all nodes to be Ready..."
 kubectl wait --for=condition=Ready nodes --all --timeout=300s
 echo "✅ All nodes are Ready."
-
-# Post start
-enable_argocd_self_heal
