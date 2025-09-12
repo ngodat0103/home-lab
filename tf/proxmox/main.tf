@@ -63,7 +63,7 @@ module "ubuntu_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
-  tags              = ["production", "file-storage","public-facing","reverse-proxy"]
+  tags              = ["production", "file-storage","public-facing","reverse-proxy","vpn-server"]
   node_name         = local.node_name
   ip_address        = "192.168.1.121/24"
   hostname          = "ubuntu-server.local"
@@ -185,8 +185,8 @@ module "k8s_masters" {
   vm_id             = 300 + count.index
   startup_config = {
     order      = 3
-    up_delay   = 10
-    down_delay = 10
+    up_delay   = 30
+    down_delay = 30
   }
 }
 module "k8s_workers" {
@@ -198,7 +198,7 @@ module "k8s_workers" {
   public_key        = local.k8s_public_key
   ip_address        = "192.168.1.14${count.index}/24"
   tags              = ["Development", "Kubernetes-workers"]
-  boot_disk_size    = 100
+  boot_disk_size    = 200
   gateway           = "192.168.1.1"
   memory            = 1024*8
   cpu_cores         = 4
@@ -212,4 +212,3 @@ module "k8s_workers" {
     down_delay = 30
   }
 }
-
