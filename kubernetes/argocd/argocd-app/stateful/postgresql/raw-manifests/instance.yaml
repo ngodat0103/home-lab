@@ -43,5 +43,5 @@ spec:
         name: nextcloud-db
   instances: 3
   storage:
-    size: 20Gi
-    storageClass: "longhorn"
+    size: 10Gi
+    storageClass: local-path
