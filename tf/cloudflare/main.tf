@@ -16,7 +16,7 @@ locals {
   account_id           = "4c8ad4e9fa8213af3fd284bb97b68b5e"
 }
 module "ddns_records" {
-  source               = "git::https://github.com/ngodat0103/terraform-module.git//cloudflare/dns-records?ref=0.0.1"
+  source               = "git::https://github.com/ngodat0103/terraform-module.git//cloudflare/dns-records?ref=9efc538229c94814818587dccad17a7ccf878310"
   cloudflare_api_token = local.cloudflare_api_token
   zone_id              = local.zone_id
   share_comment        = local.share_comment
@@ -24,6 +24,8 @@ module "ddns_records" {
   dns_records = {
     nextcloud = {
       type = "CNAME"
+      proxied = false
+      ttl = 360
     }
     gitlab = {
       type = "CNAME"
