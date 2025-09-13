@@ -1,3 +1,64 @@
+# Troubleshooting Note — Script Works in Terminal but Fails in Cron
+
+**Method:** STAR (Situation • Task • Action • Result)  
+**Cron-like simulator:**  
+```bash
+env -i /bin/bash --noprofile --norc -c '<cmd>'
+```
+
+---
+
+## Situation
+A shell script runs fine when executed interactively in a terminal but fails or behaves differently when scheduled with `crontab` (or via `/etc/cron.*`).  
+
+Cron executes jobs with a **minimal environment**:
+- No interactive shell startup (`.bashrc`, `.profile` not sourced).
+- Very limited `PATH`.
+- Different working directory (usually `$HOME` or `/`).
+- Output is not visible (mailed or discarded).
+
+These differences commonly cause issues such as **“command not found,”** missing environment variables, or failures with relative paths.
+
+---
+
+## Task
+Reproduce cron’s runtime environment to observe the failure, identify the root cause, and fix the script so that it works consistently whether run manually or via cron.
+
+---
+
+## Action
+
+### 1. Reproduce cron’s minimal environment
+```bash
+env -i /bin/bash --noprofile --norc -c '/abs/path/to/script.sh arg1 arg2'
+```
+- `env -i` → start with an empty environment.  
+- `--noprofile --norc` → skip shell init files.  
+- Mimics how cron launches jobs.
+
+---
+
+### 2. Capture stdout/stderr like cron would
+```bash
+env -i /bin/bash --noprofile --norc -c '/abs/path/to/script.sh'   > /tmp/cron_sim.log 2>&1
+tail -n +1 /tmp/cron_sim.log
+```
+
+---
+
+### 3. Use a cron-like PATH
+```bash
+env -i PATH="/usr/bin:/bin" /bin/bash --noprofile --norc -c '/abs/path/to/script.sh'
+```
+---
+
+## Result
+- The script now behaves **identically under simulation and cron**.  
+- All cron-specific issues (PATH, env vars, working dir, missing shebang) are exposed and logged.  
+- Once verified with the simulator, adding the job to `crontab -e` with logging ensures predictable behavior.
+
+---
+
 # Docker AgentDVR Permission Issue (STAR Method)
 
 ## **Situation**

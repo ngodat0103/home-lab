@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/postgresql.cnpg.io/cluster_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql
+  namespace: database
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
+  affinity:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"
+  # According to requirement of Gitlab
+  # https://docs.gitlab.com/install/requirements/#postgresql-tuning
+  resources:
+    requests:
+      memory: 1Gi
+    limits:
+      memory: 4Gi
+  managed:
+    roles:
+    - name: vaultwarden
+      ensure: present
+      comment: "Role for Vaultwarden"
+      login: true
+      superuser: false
+      passwordSecret:
+        name: "vaultwarden-db"
+    - name: gitlab
+      ensure: present
+      comment: "Role for Gitlab"
+      login: true
+      superuser: false
+      passwordSecret:
+        name: gitlab-db
+    - name: nextcloud
+      comment: Role for nextcloud
+      login: true
+      superuser: false
+      ensure: present
+      passwordSecret:
+        name: nextcloud-db
+  instances: 3
+  storage:
+    size: 10Gi
+    storageClass: local-path

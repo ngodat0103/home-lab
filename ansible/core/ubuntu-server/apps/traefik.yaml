@@ -1,0 +1,82 @@
+- name: manage traefik
+  hosts: ubuntu-server
+  become: yes
+  handlers:
+   - name: restart
+     ansible.builtin.command:
+      cmd: ["bash","docker","restart","traefik"]
+  vars:
+   id: 1010
+   docker_group_id: 999
+   email: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38373931356566356163343163643935623937666435633838373238376132653961373162326133
+          6465653861326436623564336439393165353861663733310a636163333939323466373230323235
+          32323364316564366330383564393637666162396137616661353865333139613133626466343936
+          3132373865643961390a356330636366373430343639313862666264656164343835386462336239
+          34373038626338373938396339643561363433386163613738656365643063646464
+   cloudflare_api_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38646163383361313838646333643832313965386265313037373434636666306365366366653037
+          3637313962653531633634656632376665393865626133370a653038343166346633633931373862
+          35666435613337363437383763373735333866313736633930386563316236393962336331663639
+          3734623735383566640a313161366137653035626631346262356661336466303566376362626638
+          65323137333835303961363335666262336633306535356666353066613066356336383064343238
+          3966323430363439663037633866356466633763636434373233
+  tasks:
+   - name: Create traefik user
+     ansible.builtin.user:
+      name: traefik
+      state: present
+      shell: /bin/false
+      uid: "{{id}}"
+      system: true 
+   - name: Create traefik group
+     ansible.builtin.group:
+      name: traefik
+      state: present
+      gid: "{{id}}"
+   - name: Create traefik configuration directory
+     ansible.builtin.file:
+      dest: /etc/traefik
+      state: directory
+      owner: "{{id}}"
+      group: "{{id}}"
+      mode: '700'
+   - name: Create traefik configuration file
+     ansible.builtin.copy:
+      src: files/traefik/traefik.yaml
+      dest: /etc/traefik/traefik.yaml
+      owner: "{{id}}"
+      group: "{{id}}"
+      mode: '600'
+   - name: Copy dynamic config
+     ansible.builtin.copy:
+      src: files/traefik/dynamic.yaml
+      dest: /etc/traefik/dynamic.yaml
+      owner: "{{id}}"
+      group: "{{id}}"
+      mode: '600'
+   - name: Make sure traefik is running
+     ansible.builtin.docker_container:
+      name: traefik
+      image: traefik:v3.5.1@sha256:664bb8415fddadb71c2682b329c427d12c7d53593171665f2b7b6ff924509bc1
+      state: started
+      memory: "512M"
+      cpus: 3
+      user: "{{id}}:{{docker_group_id}}"
+      restart_policy: always
+      env:
+        CF_DNS_API_TOKEN: "{{cloudflare_api_token}}"
+        CF_API_EMAIL: "{{email}}"
+      networks:
+        - name: runtime-network
+          ipv4_address: "192.168.30.50"
+      published_ports:
+        - "192.168.1.121:80:30080"
+        - "192.168.1.121:443:30443"
+      volumes:
+       - /var/run/docker.sock:/var/run/docker.sock:ro
+       - /etc/traefik/:/etc/traefik/
+       - /etc/localtime:/etc/localtime:ro
+       - /etc/timezone:/etc/timezone:ro

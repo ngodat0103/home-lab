@@ -1,0 +1,39 @@
+- name: Manage Nextcloud
+  hosts: ubuntu-server
+  become: yes
+  vars:
+   NEXTCLOUD_DIR: /etc/nextcloud
+   DATA_MNT: /mnt
+   DOMAIN: nextcloud.datrollout.dev
+  tasks:
+   - name: Create nextcloud config directory
+     ansible.builtin.file:
+      dest: "{{NEXTCLOUD_DIR}}"
+      owner: 1000
+      state: directory
+      mode: "700"
+   - name: Make sure Nextcloud container is running
+     ansible.builtin.docker_container:
+      name: nextcloud
+      memory: "6144M"
+      cpus: 2
+      state: started
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.nextcloud.rule: "Host(`{{DOMAIN}}`)"
+        traefik.http.routers.nextcloud.tls.certResolver: "letsencrypt"
+        traefik.http.routers.nextcloud.entrypoints: "websecure,web"
+        traefik.http.routers.nextcloud.tls: "true"
+      restart_policy: always
+      image: linuxserver/nextcloud:31.0.9@sha256:e38312445902d851f1b87760cbf30e820f490a44348507bfd143a9fc799475c7
+      networks:
+        - name: runtime-network
+          ipv4_address: "192.168.30.7"
+      env:
+       PUID: "1000"
+       PGID: "1000"
+       TZ: Asia/Ho_Chi_Minh
+      volumes:
+       - "{{NEXTCLOUD_DIR}}:/config"
+       - "nextcloud_data:/data"
+       - "{{DATA_MNT}}:/mnt"
