@@ -1,0 +1,13 @@
+---
+#ansible-galaxy role install geerlingguy.swap
+
+- name: Configure swap memory
+  hosts: ubuntu-server
+  become: yes
+  vars:
+    swap_file_path: /swapfile
+    swap_file_size_mb: 51200
+    swap_swappiness: 10
+    swap_file_state: present
+  roles:
+   - geerlingguy.swap
