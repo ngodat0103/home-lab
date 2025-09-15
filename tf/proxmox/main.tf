@@ -41,7 +41,7 @@ locals {
     }
   }
   lan_gateway = "192.168.1.1"
-  k8s_public_key = file("~/OneDrive/ssh/k8s/id_rsa.pub")
+  k8s_public_key = file("~/OneDrive/credentials/ssh/k8s/id_rsa.pub")
 }
 module "network_default" {
   source         = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/network/private?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
@@ -60,7 +60,7 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   url          = each.value
 }
 module "ubuntu_server" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
   tags              = ["Production", "File-storage","Public-facing","Reverse-proxy"]
@@ -75,7 +75,7 @@ module "ubuntu_server" {
   cpu_type          = "host"
   boot_disk_size    = 256
   cpu_cores         = 4
-  public_key        = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
+  public_key        = file("~/OneDrive/credentials/ssh/akira-ubuntu-server/root/id_rsa.pub")
   network_model     = "e1000e"
   startup_config = {
     order      = 2
@@ -103,7 +103,7 @@ module "ubuntu_server" {
 }
 
 module "teleport" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=53360d70fe4b7e165a0df761867d4965e3585de9"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "Teleport"
   tags              = ["Infra-access","Public-facing"]
@@ -116,7 +116,7 @@ module "teleport" {
   protection        = false
   boot_disk_size    = 30
   cpu_cores         = 1
-  public_key        = file("~/OneDrive/ssh/teleport/id_rsa.pub")
+  public_key        = file("~/OneDrive/credentials/ssh/teleport/id_rsa.pub")
   network_model     = "e1000e"
   startup_config = {
     order      = 3
@@ -167,7 +167,7 @@ module "lxc_production" {
 }
 
 module "k8s_masters" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   count             = 3
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "master-nodes-${count.index}.local"
@@ -190,7 +190,7 @@ module "k8s_masters" {
   }
 }
 module "k8s_workers" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   count             = 4
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "worker-nodes-${count.index}.local"
@@ -215,7 +215,7 @@ module "k8s_workers" {
 
 
 module "vpn_server" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=53360d70fe4b7e165a0df761867d4965e3585de9"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
