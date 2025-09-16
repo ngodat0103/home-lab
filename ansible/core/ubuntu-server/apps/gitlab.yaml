@@ -2,7 +2,7 @@
   hosts: ubuntu-server
   become: yes
   vars:
-   GITLAB_HOME_DIR: "/mnt/data2/gitlab"
+   GITLAB_HOME_DIR: /opt/gitlab
    GITLAB_BACKUP_DIR: "/mnt/recovery/cloud/gitlab"
    domain: gitlab.datrollout.dev
   tasks:
