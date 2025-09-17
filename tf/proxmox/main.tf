@@ -63,7 +63,7 @@ module "ubuntu_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
-  tags              = ["Production", "File-storage","Public-facing","Reverse-proxy"]
+  tags              = ["production", "file-storage","public-facing","reverse-proxy"]
   node_name         = local.node_name
   ip_address        = "192.168.1.121/24"
   hostname          = "ubuntu-server.local"
@@ -106,7 +106,7 @@ module "teleport" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "Teleport"
-  tags              = ["Infra-access","Public-facing"]
+  tags              = ["development","infra-access","public-facing"]
   node_name         = local.node_name
   ip_address        = "192.168.1.122/24"
   hostname          = "teleport.local"
@@ -174,7 +174,7 @@ module "k8s_masters" {
   name              = "master-nodes-${count.index}"
   public_key        = local.k8s_public_key
   ip_address        = "192.168.1.13${count.index}/24"
-  tags              = ["Development", "Kubernetes-masters"]
+  tags              = ["development", "kubernetes-masters"]
   gateway           = "192.168.1.1"
   memory            = 4096
   cpu_cores         = 2
@@ -197,7 +197,7 @@ module "k8s_workers" {
   name              = "worker-nodes-${count.index}"
   public_key        = local.k8s_public_key
   ip_address        = "192.168.1.14${count.index}/24"
-  tags              = ["Development", "Kubernetes-workers"]
+  tags              = ["development", "kubernetes-workers"]
   boot_disk_size    = 200
   gateway           = "192.168.1.1"
   memory            = 1024*8
@@ -219,7 +219,7 @@ module "vpn_server" {
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
-  tags              = ["OpenVPN", "IPsec","Wireguard"]
+  tags              = ["openvpn", "ipsec","wireguard"]
   node_name         = local.node_name
   ip_address        = "192.168.1.123/24"
   bridge_name       = "vmbr0"
