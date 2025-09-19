@@ -2,9 +2,9 @@ output "lxc_default" {
   value     = module.lxc_production
   sensitive = true
 }
-output "k8s-masters"{
+output "k8s-masters" {
   value = module.k8s_masters
 }
-output "k8s-workers"{
+output "k8s-workers" {
   value = module.k8s_workers
 }

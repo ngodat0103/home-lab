@@ -26,7 +26,7 @@ locals {
       network_interface_bridge = "private"
       template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
       cores                    = 1
-      memory                   = 1024*4
+      memory                   = 1024 * 4
       node_name                = local.node_name
       mount_volume_size        = 50 #GB
       vm_id                    = 100
@@ -40,7 +40,7 @@ locals {
       }
     }
   }
-  lan_gateway = "192.168.1.1"
+  lan_gateway    = "192.168.1.1"
   k8s_public_key = file("~/OneDrive/credentials/ssh/k8s/id_rsa.pub")
 }
 module "network_default" {
@@ -63,12 +63,12 @@ module "ubuntu_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
-  tags              = ["production", "file-storage","public-facing","reverse-proxy"]
+  tags              = ["production", "file-storage", "public-facing", "reverse-proxy"]
   node_name         = local.node_name
   ip_address        = "192.168.1.121/24"
   hostname          = "ubuntu-server.local"
   bridge_name       = "vmbr0"
-  memory            = 1024*12
+  memory            = 1024 * 12
   gateway           = local.lan_gateway
   protection        = true
   vm_id             = 101
@@ -103,15 +103,15 @@ module "ubuntu_server" {
 }
 
 module "teleport" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "Teleport"
-  tags              = ["development","infra-access","public-facing"]
+  tags              = ["development", "infra-access", "public-facing"]
   node_name         = local.node_name
   ip_address        = "192.168.1.122/24"
   hostname          = "teleport.local"
   bridge_name       = "vmbr0"
-  memory            = 1024*2
+  memory            = 1024 * 2
   gateway           = local.lan_gateway
   protection        = false
   boot_disk_size    = 30
@@ -167,7 +167,7 @@ module "lxc_production" {
 }
 
 module "k8s_masters" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   count             = 3
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "master-nodes-${count.index}.local"
@@ -190,7 +190,7 @@ module "k8s_masters" {
   }
 }
 module "k8s_workers" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   count             = 4
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "worker-nodes-${count.index}.local"
@@ -200,7 +200,7 @@ module "k8s_workers" {
   tags              = ["development", "kubernetes-workers"]
   boot_disk_size    = 200
   gateway           = "192.168.1.1"
-  memory            = 1024*8
+  memory            = 1024 * 8
   cpu_cores         = 4
   node_name         = local.node_name
   datastore_id      = "local-lvm"
@@ -215,16 +215,17 @@ module "k8s_workers" {
 
 
 module "vpn_server" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
-  tags              = ["openvpn", "ipsec","wireguard"]
+  tags              = ["openvpn", "ipsec", "wireguard", "development"]
   node_name         = local.node_name
   ip_address        = "192.168.1.123/24"
   bridge_name       = "vmbr0"
-  memory            = 1024*0.5
+  memory            = 1024 * 0.5
   gateway           = local.lan_gateway
+  on_boot           = true
   boot_disk_size    = 10
   cpu_cores         = 1
   public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsrn8bEdQQsmIOD192lsGXl0gdMZO9zESt4I8+QvIKjGvqYCWsR7Pi0LhvxD6jdm+dfIJymmQ6Qth9W0HgfHnUVZ9SEzW+vi3g2kSClutOA25IdelChrCw3jOrsYamITDH/J5mwb26ezGqx+32INM43seONN3pKuUL/C9WXVf4KMqvl2biAUJjaofRC3KuJUe2FJoA0j+pJZJ+ciCZBTg3CmAqjuUnQgWZOyhfaEDJ5m9q+u/anWKsBNxtJux7QGNyErKFNi3rg+c+yqkAAUfVO3a3N/mmezdaNlGjace3gFncjHfSDEye1RwJv+Oyd1d8mxzTjl9R4tNSOuHd8Xxd4FNwBFn1o1KRIyvur43Z3Aqj/3qWjTrhY5DoV920Wq7xZEr+u+BdQUF3nTzrqt/B48BJpxAm6CTHpq/OFXTD+ZFRaPIgJAG04sjp4oWOGS2ni40v4Y9vooweCqmr1kGog9nqcTU6lxV+umDjBc0ekdDAKnWnUOJzhP8rO5ogQ4c= akira@legion5"
