@@ -9,6 +9,9 @@ locals {
     #Reference: https://cloud-images.ubuntu.com/jammy/current/
     ubuntu_2204 = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
   }
+  iso_templates = {
+    sophos = "https://nextcloud.datrollout.dev/public.php/dav/files/BiH9Z3kMCA77ns4/?accept=zip"
+  }
   node_name = "pve-master"
   network = {
     private = {
@@ -56,6 +59,14 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   file_name    = "${each.key}.qcow2"
   datastore_id = "local"
   content_type = "import"
+  node_name    = local.node_name
+  url          = each.value
+}
+resource "proxmox_virtual_environment_download_file" "iso_templates" {
+  for_each     = local.iso_templates
+  file_name    = "${each.key}.iso"
+  datastore_id = "local"
+  content_type = "iso"
   node_name    = local.node_name
   url          = each.value
 }
@@ -219,17 +230,45 @@ module "vpn_server" {
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
-  tags              = ["openvpn", "ipsec", "wireguard", "development"]
+  tags              = ["ipsec", "wireguard", "development"]
   node_name         = local.node_name
   ip_address        = "192.168.1.123/24"
   bridge_name       = "vmbr0"
   memory            = 1024 * 0.5
   gateway           = local.lan_gateway
-  on_boot           = true
+  on_boot           = false
   boot_disk_size    = 10
   cpu_cores         = 1
   public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsrn8bEdQQsmIOD192lsGXl0gdMZO9zESt4I8+QvIKjGvqYCWsR7Pi0LhvxD6jdm+dfIJymmQ6Qth9W0HgfHnUVZ9SEzW+vi3g2kSClutOA25IdelChrCw3jOrsYamITDH/J5mwb26ezGqx+32INM43seONN3pKuUL/C9WXVf4KMqvl2biAUJjaofRC3KuJUe2FJoA0j+pJZJ+ciCZBTg3CmAqjuUnQgWZOyhfaEDJ5m9q+u/anWKsBNxtJux7QGNyErKFNi3rg+c+yqkAAUfVO3a3N/mmezdaNlGjace3gFncjHfSDEye1RwJv+Oyd1d8mxzTjl9R4tNSOuHd8Xxd4FNwBFn1o1KRIyvur43Z3Aqj/3qWjTrhY5DoV920Wq7xZEr+u+BdQUF3nTzrqt/B48BJpxAm6CTHpq/OFXTD+ZFRaPIgJAG04sjp4oWOGS2ni40v4Y9vooweCqmr1kGog9nqcTU6lxV+umDjBc0ekdDAKnWnUOJzhP8rO5ogQ4c= akira@legion5"
   network_model     = "e1000e"
+  startup_config = {
+    order      = 1
+    up_delay   = 10
+    down_delay = 10
+  }
+}
+
+
+module "sophos" {
+  source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=3548fa45c1fa3ff63f5db69b18d8aea7c5cf9286"
+  cdrom = {
+    enabled = true
+    file_id = resource.proxmox_virtual_environment_download_file.iso_templates["sophos"].id
+  }
+  name           = "sophos"
+  hostname       = "sophos.local"
+  tags           = ["development", "firewall"]
+  node_name      = local.node_name
+  ip_address     = "192.168.1.124/24"
+  bridge_name    = "vmbr0"
+  memory         = 1024 * 4
+  gateway        = local.lan_gateway
+  on_boot        = true
+  boot_disk_size = 40
+  cpu_cores      = 4
+  cpu_type       = "host"
+  public_key     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/qU4CDx0D6p7HSvcLqMoYYLAkGzWMBundOTo3XqHvP0gqocYe/AlDzRHAS1N3uJEBmLa6FQEFxgoCjjUDBuNgul/OAaJq+yrOvrJ5NPie3y7/2FerJ1trCFPmywBf8TPNwTNLy2CStSTAdaG4tCkpSI78mlmBC2srnkdJ3NNobiwdSzqoTqp9soDhEaZV51/WX0vtxL3WZWXKsX0eDbwqXT9FfwEvRGuy2E7BT4Ksr2ablvWRAv5XjXwG1hK9ASsMNnaHqcpgwAy5fbXy+H/8COWdPAbd3E7oXajZ82Lu9YOWf3nYyy9E17yb2KjRei0pkGlmZQGz2IyPZNVvuYC7l9LU36pcxnv2EHesN5q51hScPEqUu50DmimebAhMLxvfe6yF3smReTiB6hKyke5963j6BbgFb6VS2SsYVcY41wBvDB2GDTGWHyI9h/ViPx5oL4PVx3pw0RYYa8KrtiNqiyjDC0F+NHqHCDud+mA3x25VzDN7Vlpl0Zv1e3PmqtE= akira@legion5"
+  network_model  = "e1000e"
   startup_config = {
     order      = 1
     up_delay   = 10
