@@ -18,6 +18,14 @@
           3337333033356562640a653061333064616230613265663732336161366335363031323334653763
           3038
      db_host: '192.168.99.2'
+     smtp_username: "21521935@gm.uit.edu.vn"
+     smtp_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37383237643335633832366539646634326630363230326131646338616631393062386137366130
+          6564326537383532363334363838386132653238306535310a656436653964303439326266346666
+          35383262313361663737626666363138373037323535303865333430393065326239386334343738
+          6234373538623163340a366531373630396661643965646232663362623732643736333866653962
+          61303964356563636135393035613831326137326333643065373035626133306565
     ansible.builtin.docker_container:
       labels:
         com.github.ngodat0103.service: gitlab
@@ -53,6 +61,13 @@
           gitlab_rails['db_username'] = "{{db_username}}"
           gitlab_rails['db_password'] = "{{db_password}}"
           gitlab_rails['db_host'] = "{{db_host}}"
+          gitlab_rails['smtp_enable'] = true
+          gitlab_rails['smtp_port'] = 587
+          gitlab_rails['smtp_user_name'] = "{{smtp_username}}"
+          gitlab_rails['smtp_password'] = "{{smtp_password}}"
+          gitlab_rails['smtp_address'] = "smtp.gmail.com"
+          gitlab_rails['smtp_authentication'] = "login"
+          gitlab_rails['smtp_enable_starttls_auto'] = true
       networks:
       - name: runtime-network
         ipv4_address: '192.168.30.20'
