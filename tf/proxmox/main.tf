@@ -248,6 +248,29 @@ module "vpn_server" {
   }
 }
 
+module "hephaestus" {
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
+  template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
+  name              = "hephaestus"
+  tags =["Gitlab-runner","Github-runner"]
+  hostname          = "hephaestus.local"
+  node_name         = local.node_name
+  ip_address        = "192.168.1.124/24"
+  bridge_name       = "vmbr0"
+  memory            = 1024 * 8
+  gateway           = local.lan_gateway
+  description = "The server to run multiple CI tools such as Github Runner, Gitlab Runner"
+  on_boot           = true
+  boot_disk_size    = 150
+  cpu_cores         = 4
+  public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCrERHvr2Wb8+W9BtivbGS6O0Z7ggXtMYGUgfjWgG2xtVfy/3KjzrTuo/Qycb+sLOQUEYK3ciXe8UMEP0nsh3oLwH6ty19izzFqjptAXfErkWY43FV0SfOj/NmdoAfDT0VSawjcxKDZlaJuFynIzjweR4vt7zvwOohxbz6sJv1EOQzjhwV+dBR8B2sT0bt1pwGK/L9Yb6y0XBCafTCErwM32sraa0EJOI7614BxrQ4f57i3Qxru9vFkHmAcH45MOuXTdjYvmfAKs+TlePV0tSgZfR/NgI+/opzvwOxYK3m4myAf+SpObopfEqIclAdqPNytwgGjORXey7am7IzzUWOJ2f2WaCHxLgs6OezfCSewz1w4riN5XCD8k2AAm1UgYWKcjGr3iG4ipoUA3F3s5lDNu7TKW39WzuMsBD/LUexY6C6HCFnipM+BJZYJ97TDcQB8BrZCZgFPf7YpMr8OkUmDLgroiZsWWvpmUxj3VvMQmMOp/0QktS2N8QxTLptjzu0= akira@legion5"
+  network_model     = "e1000e"
+  startup_config = {
+    order      = 3
+    up_delay   = 30
+    down_delay = 1
+  }
+}
 
 module "sophos" {
   source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=3548fa45c1fa3ff63f5db69b18d8aea7c5cf9286"
@@ -270,8 +293,8 @@ module "sophos" {
   public_key     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/qU4CDx0D6p7HSvcLqMoYYLAkGzWMBundOTo3XqHvP0gqocYe/AlDzRHAS1N3uJEBmLa6FQEFxgoCjjUDBuNgul/OAaJq+yrOvrJ5NPie3y7/2FerJ1trCFPmywBf8TPNwTNLy2CStSTAdaG4tCkpSI78mlmBC2srnkdJ3NNobiwdSzqoTqp9soDhEaZV51/WX0vtxL3WZWXKsX0eDbwqXT9FfwEvRGuy2E7BT4Ksr2ablvWRAv5XjXwG1hK9ASsMNnaHqcpgwAy5fbXy+H/8COWdPAbd3E7oXajZ82Lu9YOWf3nYyy9E17yb2KjRei0pkGlmZQGz2IyPZNVvuYC7l9LU36pcxnv2EHesN5q51hScPEqUu50DmimebAhMLxvfe6yF3smReTiB6hKyke5963j6BbgFb6VS2SsYVcY41wBvDB2GDTGWHyI9h/ViPx5oL4PVx3pw0RYYa8KrtiNqiyjDC0F+NHqHCDud+mA3x25VzDN7Vlpl0Zv1e3PmqtE= akira@legion5"
   network_model  = "e1000e"
   startup_config = {
-    order      = 1
-    up_delay   = 10
+    order      = 3
+    up_delay   = 30
     down_delay = 10
   }
 }
