@@ -27,6 +27,10 @@ module "ddns_records" {
       proxied = false
       ttl = 360
     }
+    jellyfin = {
+      type = "CNAME"
+      proxied = false
+    }
     gitlab = {
       type = "CNAME"
     }

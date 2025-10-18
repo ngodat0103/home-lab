@@ -252,7 +252,7 @@ module "hephaestus" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "hephaestus"
-  tags =["Gitlab-runner","Github-runner"]
+  tags =["Gitlab-runner","Github-runner","production"]
   hostname          = "hephaestus.local"
   node_name         = local.node_name
   ip_address        = "192.168.1.124/24"

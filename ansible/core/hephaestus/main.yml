@@ -5,9 +5,9 @@
   vars_files:
     - group_vars/hephaestus.yml
   roles:
-    # - role: common
-    # - role: golang
-    # - role: docker
+    - role: common
+    - role: golang
+    - role: docker
     - role: gitlab_runner
   tasks:
    - name: Ensure GitLab host is in /etc/hosts
@@ -37,3 +37,6 @@
           --token "{{ gitlab_runner_token }}"
           --executor "{{gitlab_runner_executor}}"
           --docker-image "ubuntu-2204"
+          --docker-privileged
+          --docker-volumes "/certs/client"
+          --docker-volumes "/cache"

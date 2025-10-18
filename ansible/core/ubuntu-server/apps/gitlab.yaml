@@ -42,7 +42,7 @@
         traefik.tcp.routers.gitlab-ssh-router.tls: "false"
         traefik.tcp.routers.gitlab-ssh-router.service: "gitlab-ssh-service"
       name: gitlab
-      image: gitlab/gitlab-ee:18.1.6-ee.0@sha256:22ed4db0479c623bb0e56af08bcbc75ad120f1c37166321521f8e00b605e072c
+      image: gitlab/gitlab-ee:18.5.0-ee.0
       state: started
       restart_policy: always
       log_driver: 'json-file'

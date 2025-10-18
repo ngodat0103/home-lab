@@ -1,0 +1,7 @@
+- name: Manage wireguard
+  hosts: vpn-server
+  tasks:
+   - name: install wireguard using role
+     tags: ["install"]
+     ansible.builtin.include_role:
+      name: wireguard-role

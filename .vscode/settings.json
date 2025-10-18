@@ -48,7 +48,8 @@
                 "https://www.schemastore.org/yamllint.json": "file:///home/akira/code/home-lab/ansible/kubernetes/config/ip-pool.yaml",
                 "https://raw.githubusercontent.com/traefik/traefik-helm-chart/refs/tags/v37.0.0/traefik/values.yaml": "file:///home/akira/code/home-lab/k3s/traefik/values.yaml",
                 "https://raw.githubusercontent.com/rancher/rancher/refs/tags/v2.12.1/chart/values.schema.json": "file:///home/akira/code/home-lab/k3s/argocd/argocd-app/stateful/rancher/values.yaml",
-                "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/postgresql.cnpg.io/cluster_v1.json": "file:///home/akira/code/home-lab/kubernetes/argocd/argocd-app/stateful/postgresql/raw-manifests/instance.yaml"
+                "https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/postgresql.cnpg.io/cluster_v1.json": "file:///home/akira/code/home-lab/kubernetes/argocd/argocd-app/stateful/postgresql/raw-manifests/instance.yaml",
+                "https://raw.githubusercontent.com/compose-spec/compose-go/master/schema/compose-spec.json": "file:///home/akira/code/home-lab/ansible/core/vpn-server/files/openvpn.yaml"
         },
         "ansible.python.interpreterPath": "/bin/python3",
 }
