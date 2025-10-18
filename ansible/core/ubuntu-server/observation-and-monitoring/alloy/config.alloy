@@ -1,0 +1,123 @@
+// ###############################
+// #### Logging Configuration ####
+// ###############################
+
+// --- Discover Docker containers ---
+discovery.docker "linux" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// --- Relabel rules (strip leading "/" from container name; add instance) ---
+discovery.relabel "logs_integrations_docker" {
+  targets = []
+
+  // container_name: "/nginx" -> "nginx"
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container_name"
+  }
+
+  // instance: set to host running Alloy
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+}
+
+// --- Log processing pipeline: extract log_level ---
+loki.process "parse_level" {
+  // 1) Try JSON logs first: capture a variety of common level fields
+  stage.json {
+    // Each expression creates an extracted field
+    // Prefer to write into the same extracted key "log_level" where possible
+    expressions = {
+      log_level       = "level",         // {"level":"info"}
+      severity        = "severity",      // {"severity":"warn"}
+      log_dot_level   = "log.level",     // {"log":{"level":"error"}}
+      lvl             = "lvl",     // {"lvl":"debug"}
+      message         = "message",       // optional: useful to keep around
+      msg             = "msg",           // optional
+    }
+    // 'source' defaults to the full log line; JSON parse will no-op if not JSON
+  }
+
+  // 2) If JSON didn’t have it, try to lift alternatives into "log_level"
+  //    a) severity -> log_level
+  stage.regex {
+    // If severity exists and log_level not set, copy severity
+    // This matches "severity=<word>" OR an extracted field already present.
+    // The (?P<log_level>...) wins only when not already set by JSON above.
+    expression = "(?i)(?:^|[\\s\\{\\[,])severity[=:\"\\s]*?(?P<log_level>[a-z]+)"
+  }
+
+  //    b) lvl -> log_level
+  stage.regex {
+    expression = "(?i)(?:^|[\\s\\{\\[,])lvl[=:\"\\s]*?(?P<log_level>[a-z]+)"
+  }
+
+  // 3) Plain-text patterns
+  //    a) Bracket prefix: [INFO] something...
+  stage.regex {
+    expression = "^[\\[\\(](?P<log_level>[A-Za-z]+)[\\]\\)]"
+  }
+
+  //    b) Key=Value anywhere: level=ERROR / level: warn
+  stage.regex {
+    expression = "(?i)(?:^|\\s)level\\s*[:=]\\s*(?P<log_level>[A-Za-z]+)"
+  }
+
+  //    c) Leading word as level: "ERROR: ..." or "warn - ..."
+  stage.regex {
+    expression = "^(?P<log_level>(?i:trace|debug|info|warn|warning|error|fatal|critical))\\b[:\\-\\s]"
+  }
+
+  // 4) Publish labels
+  //    If "log_level" was captured by any stage above, this exposes it as a label.
+  stage.labels {
+    values = {
+      log_level = "",       // take the extracted field "log_level" (if present)
+      container_name = "",  // already set by discovery.relabel (exposes as label on the entry)
+      instance = "" ,       // already set by discovery.relabel
+    }
+  }
+
+  // 5) (Optional) Default missing level to "info"
+  //    Uncomment the block below if you *always* want a level.
+  /*
+  stage.labels {
+    values = {
+      log_level = "info"
+    }
+  }
+  */
+  stage.regex {
+  expression = "^(?P<client_ip>\\S+) \\S+ \\S+ \\[(?P<timestamp>[^\\]]+)\\] \"(?P<method>[A-Z]+) (?P<path>[^ ]+) (?P<protocol>[^\"]+)\" (?P<status>\\d+) (?P<bytes_sent>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\" (?P<request_id>\\d+) \"(?P<router_name>[^\"]+)\" \"(?P<upstream_url>[^\"]+)\" (?P<duration>\\d+ms)"
+}
+stage.labels {
+  values = {
+    client_ip    = "",
+    method       = "",
+    path         = "",
+    status       = "",
+    router_name  = "",
+    duration     = "",
+  }
+}
+  forward_to = [loki.write.local.receiver]
+}
+
+// --- Read Docker logs + apply relabel + send to process pipeline ---
+loki.source.docker "default" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.linux.targets
+  relabel_rules = discovery.relabel.logs_integrations_docker.rules
+  forward_to    = [loki.process.parse_level.receiver]
+}
+
+// --- Write to Loki ---
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

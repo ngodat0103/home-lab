@@ -20,14 +20,18 @@ rule_files:
 # Here it's Prometheus itself.
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: "pve-master"
+  - job_name: node_exporters collector
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
     static_configs:
       - targets: ["192.168.1.120:9100"]
        # The label name is added as a label `label_name=<label_value>` to any timeseries scraped from this config.
         labels:
-          app: "pve-master"
+          server: pve-master
+      - targets: ["192.168.1.121:9100"]
+       # The label name is added as a label `label_name=<label_value>` to any timeseries scraped from this config.
+        labels:
+          server: ubuntu-server
   - job_name: traefik
     static_configs:
       - targets: ['192.168.30.50:8080']

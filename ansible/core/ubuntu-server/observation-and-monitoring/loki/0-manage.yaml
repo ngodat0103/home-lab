@@ -1,0 +1,39 @@
+- name: Manage Loki instance
+  hosts: ubuntu-server
+  become: yes
+  vars:
+   uid: 10001
+   data_path: /mnt/data2/loki
+   config_path: /etc/loki
+  tasks:
+   - name: Create user Loki
+     ansible.builtin.user:
+      name: loki
+      uid: "{{uid}}"
+   - name: Make sure Data's Loki and config directory exixted
+     loop:
+      - "{{data_path}}"
+      - "{{config_path}}"
+     ansible.builtin.file:
+      dest: "{{item}}"
+      owner: "{{uid}}"
+      mode: "740"
+      state: directory
+   - name: Copy Loki config to remote machine 
+     ansible.builtin.copy:
+      src: loki-config.yaml
+      dest: "{{config_path}}"
+      mode: "600"
+      owner: "{{uid}}"
+   - name: Make sure Loki container is running
+     ansible.builtin.docker_container:
+      name: loki
+      image: "grafana/loki:3.5.7-amd64"
+      command: "-config.file /etc/loki/loki-config.yaml"
+      volumes:
+       - "{{config_path}}:/etc/loki/:ro"
+       - "{{data_path}}:/data"
+      user: "{{uid}}"
+      networks:
+       - name: runtime-network
+         ipv4_address: "192.168.30.21"

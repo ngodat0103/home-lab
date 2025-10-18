@@ -9,6 +9,9 @@ locals {
     #Reference: https://cloud-images.ubuntu.com/jammy/current/
     ubuntu_2204 = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
   }
+  iso_templates = {
+    sophos = "https://nextcloud.datrollout.dev/public.php/dav/files/BiH9Z3kMCA77ns4/?accept=zip"
+  }
   node_name = "pve-master"
   network = {
     private = {
@@ -26,7 +29,7 @@ locals {
       network_interface_bridge = "private"
       template_file_id         = resource.proxmox_virtual_environment_download_file.lxc["ubuntu_2204"].id
       cores                    = 1
-      memory                   = 1024*4
+      memory                   = 1024 * 4
       node_name                = local.node_name
       mount_volume_size        = 50 #GB
       vm_id                    = 100
@@ -40,8 +43,8 @@ locals {
       }
     }
   }
-  lan_gateway = "192.168.1.1"
-  k8s_public_key = file("~/OneDrive/ssh/k8s/id_rsa.pub")
+  lan_gateway    = "192.168.1.1"
+  k8s_public_key = file("~/OneDrive/credentials/ssh/k8s/id_rsa.pub")
 }
 module "network_default" {
   source         = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/network/private?ref=ef2db374546fe4bade20496d79bc50e6776db4cd"
@@ -59,23 +62,31 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   node_name    = local.node_name
   url          = each.value
 }
+resource "proxmox_virtual_environment_download_file" "iso_templates" {
+  for_each     = local.iso_templates
+  file_name    = "${each.key}.iso"
+  datastore_id = "local"
+  content_type = "iso"
+  node_name    = local.node_name
+  url          = each.value
+}
 module "ubuntu_server" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=ecc387b5f61e4103fe03ff2c646a6dab5400268e"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "UbuntuServer"
-  tags              = ["Production", "File-storage","Public-facing","Reverse-proxy"]
+  tags              = ["production", "file-storage", "public-facing", "reverse-proxy"]
   node_name         = local.node_name
   ip_address        = "192.168.1.121/24"
   hostname          = "ubuntu-server.local"
   bridge_name       = "vmbr0"
-  memory            = 1024*12
+  memory            = 1024 * 12
   gateway           = local.lan_gateway
   protection        = true
   vm_id             = 101
   cpu_type          = "host"
   boot_disk_size    = 256
   cpu_cores         = 4
-  public_key        = file("~/OneDrive/ssh/akira-ubuntu-server/root/id_rsa.pub")
+  public_key        = file("~/OneDrive/credentials/ssh/akira-ubuntu-server/root/id_rsa.pub")
   network_model     = "e1000e"
   startup_config = {
     order      = 2
@@ -103,20 +114,20 @@ module "ubuntu_server" {
 }
 
 module "teleport" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=53360d70fe4b7e165a0df761867d4965e3585de9"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "Teleport"
-  tags              = ["Infra-access","Public-facing"]
+  tags              = ["development", "infra-access", "public-facing"]
   node_name         = local.node_name
   ip_address        = "192.168.1.122/24"
   hostname          = "teleport.local"
   bridge_name       = "vmbr0"
-  memory            = 1024*2
+  memory            = 1024 * 2
   gateway           = local.lan_gateway
   protection        = false
   boot_disk_size    = 30
   cpu_cores         = 1
-  public_key        = file("~/OneDrive/ssh/teleport/id_rsa.pub")
+  public_key        = file("~/OneDrive/credentials/ssh/teleport/id_rsa.pub")
   network_model     = "e1000e"
   startup_config = {
     order      = 3
@@ -167,14 +178,14 @@ module "lxc_production" {
 }
 
 module "k8s_masters" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   count             = 3
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "master-nodes-${count.index}.local"
   name              = "master-nodes-${count.index}"
   public_key        = local.k8s_public_key
   ip_address        = "192.168.1.13${count.index}/24"
-  tags              = ["Development", "Kubernetes-masters"]
+  tags              = ["development", "kubernetes-masters"]
   gateway           = "192.168.1.1"
   memory            = 4096
   cpu_cores         = 2
@@ -190,17 +201,17 @@ module "k8s_masters" {
   }
 }
 module "k8s_workers" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=0b07dc767d9b6a5a75613dcf333ea79a9066ad8d"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   count             = 4
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "worker-nodes-${count.index}.local"
   name              = "worker-nodes-${count.index}"
   public_key        = local.k8s_public_key
   ip_address        = "192.168.1.14${count.index}/24"
-  tags              = ["Development", "Kubernetes-workers"]
+  tags              = ["development", "kubernetes-workers"]
   boot_disk_size    = 200
   gateway           = "192.168.1.1"
-  memory            = 1024*8
+  memory            = 1024 * 8
   cpu_cores         = 4
   node_name         = local.node_name
   datastore_id      = "local-lvm"
@@ -215,16 +226,17 @@ module "k8s_workers" {
 
 
 module "vpn_server" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=53360d70fe4b7e165a0df761867d4965e3585de9"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
-  tags              = ["OpenVPN", "IPsec","Wireguard"]
+  tags              = ["ipsec", "wireguard", "development"]
   node_name         = local.node_name
   ip_address        = "192.168.1.123/24"
   bridge_name       = "vmbr0"
-  memory            = 1024*0.5
+  memory            = 1024 * 0.5
   gateway           = local.lan_gateway
+  on_boot           = false
   boot_disk_size    = 10
   cpu_cores         = 1
   public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsrn8bEdQQsmIOD192lsGXl0gdMZO9zESt4I8+QvIKjGvqYCWsR7Pi0LhvxD6jdm+dfIJymmQ6Qth9W0HgfHnUVZ9SEzW+vi3g2kSClutOA25IdelChrCw3jOrsYamITDH/J5mwb26ezGqx+32INM43seONN3pKuUL/C9WXVf4KMqvl2biAUJjaofRC3KuJUe2FJoA0j+pJZJ+ciCZBTg3CmAqjuUnQgWZOyhfaEDJ5m9q+u/anWKsBNxtJux7QGNyErKFNi3rg+c+yqkAAUfVO3a3N/mmezdaNlGjace3gFncjHfSDEye1RwJv+Oyd1d8mxzTjl9R4tNSOuHd8Xxd4FNwBFn1o1KRIyvur43Z3Aqj/3qWjTrhY5DoV920Wq7xZEr+u+BdQUF3nTzrqt/B48BJpxAm6CTHpq/OFXTD+ZFRaPIgJAG04sjp4oWOGS2ni40v4Y9vooweCqmr1kGog9nqcTU6lxV+umDjBc0ekdDAKnWnUOJzhP8rO5ogQ4c= akira@legion5"
@@ -232,6 +244,57 @@ module "vpn_server" {
   startup_config = {
     order      = 1
     up_delay   = 10
+    down_delay = 10
+  }
+}
+
+module "hephaestus" {
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
+  template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
+  name              = "hephaestus"
+  tags =["Gitlab-runner","Github-runner","production"]
+  hostname          = "hephaestus.local"
+  node_name         = local.node_name
+  ip_address        = "192.168.1.124/24"
+  bridge_name       = "vmbr0"
+  memory            = 1024 * 8
+  gateway           = local.lan_gateway
+  description = "The server to run multiple CI tools such as Github Runner, Gitlab Runner"
+  on_boot           = true
+  boot_disk_size    = 150
+  cpu_cores         = 4
+  public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCrERHvr2Wb8+W9BtivbGS6O0Z7ggXtMYGUgfjWgG2xtVfy/3KjzrTuo/Qycb+sLOQUEYK3ciXe8UMEP0nsh3oLwH6ty19izzFqjptAXfErkWY43FV0SfOj/NmdoAfDT0VSawjcxKDZlaJuFynIzjweR4vt7zvwOohxbz6sJv1EOQzjhwV+dBR8B2sT0bt1pwGK/L9Yb6y0XBCafTCErwM32sraa0EJOI7614BxrQ4f57i3Qxru9vFkHmAcH45MOuXTdjYvmfAKs+TlePV0tSgZfR/NgI+/opzvwOxYK3m4myAf+SpObopfEqIclAdqPNytwgGjORXey7am7IzzUWOJ2f2WaCHxLgs6OezfCSewz1w4riN5XCD8k2AAm1UgYWKcjGr3iG4ipoUA3F3s5lDNu7TKW39WzuMsBD/LUexY6C6HCFnipM+BJZYJ97TDcQB8BrZCZgFPf7YpMr8OkUmDLgroiZsWWvpmUxj3VvMQmMOp/0QktS2N8QxTLptjzu0= akira@legion5"
+  network_model     = "e1000e"
+  startup_config = {
+    order      = 3
+    up_delay   = 30
+    down_delay = 1
+  }
+}
+
+module "sophos" {
+  source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=3548fa45c1fa3ff63f5db69b18d8aea7c5cf9286"
+  cdrom = {
+    enabled = true
+    file_id = resource.proxmox_virtual_environment_download_file.iso_templates["sophos"].id
+  }
+  name           = "sophos"
+  hostname       = "sophos.local"
+  tags           = ["development", "firewall"]
+  node_name      = local.node_name
+  ip_address     = "192.168.1.124/24"
+  bridge_name    = "vmbr0"
+  memory         = 1024 * 4
+  gateway        = local.lan_gateway
+  on_boot        = true
+  boot_disk_size = 40
+  cpu_cores      = 4
+  cpu_type       = "host"
+  public_key     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/qU4CDx0D6p7HSvcLqMoYYLAkGzWMBundOTo3XqHvP0gqocYe/AlDzRHAS1N3uJEBmLa6FQEFxgoCjjUDBuNgul/OAaJq+yrOvrJ5NPie3y7/2FerJ1trCFPmywBf8TPNwTNLy2CStSTAdaG4tCkpSI78mlmBC2srnkdJ3NNobiwdSzqoTqp9soDhEaZV51/WX0vtxL3WZWXKsX0eDbwqXT9FfwEvRGuy2E7BT4Ksr2ablvWRAv5XjXwG1hK9ASsMNnaHqcpgwAy5fbXy+H/8COWdPAbd3E7oXajZ82Lu9YOWf3nYyy9E17yb2KjRei0pkGlmZQGz2IyPZNVvuYC7l9LU36pcxnv2EHesN5q51hScPEqUu50DmimebAhMLxvfe6yF3smReTiB6hKyke5963j6BbgFb6VS2SsYVcY41wBvDB2GDTGWHyI9h/ViPx5oL4PVx3pw0RYYa8KrtiNqiyjDC0F+NHqHCDud+mA3x25VzDN7Vlpl0Zv1e3PmqtE= akira@legion5"
+  network_model  = "e1000e"
+  startup_config = {
+    order      = 3
+    up_delay   = 30
     down_delay = 10
   }
 }

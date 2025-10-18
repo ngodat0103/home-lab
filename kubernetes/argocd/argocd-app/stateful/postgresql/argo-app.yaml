@@ -19,7 +19,7 @@ spec:
   sources:
   - repoURL: https://cloudnative-pg.github.io/charts
     chart: cloudnative-pg
-    targetRevision: "0.25.0"
+    targetRevision: 0.25.0
     helm:
       values: |
         metadata:

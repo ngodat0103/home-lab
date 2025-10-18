@@ -51,6 +51,10 @@
       type: prometheus
       url: http://192.168.30.4:9090
       basicAuth: false
+    - name: "loki"
+      type: loki
+      url: http://192.168.30.21:3100
+      basicAuth: false
    grafana_dashboards:
        # https://grafana.com/grafana/dashboards/10048-proxmox/
     - dashboard_id: 10048

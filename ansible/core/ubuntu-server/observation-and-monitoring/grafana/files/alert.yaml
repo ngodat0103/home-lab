@@ -1,9 +1,68 @@
-contactPoints:
+apiVersion: 1
+groups:
 - orgId: 1
-  name: Email to Mine
-  receivers:
-  - uid: mine
-    type: email
-    settings:
-      addresses: ngovuminhdat@gmail.com
-      singleEmail: true
+  name: Disk check
+  folder: Disk Monitoring
+  interval: 10m
+  rules:
+  - title: Disk Space Used Basic
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: P42DFE5F54C20AEAF
+      model:
+        adhocFilters: []
+        datasource:
+          type: prometheus
+          uid: P42DFE5F54C20AEAF
+        editorMode: code
+        expr: ((node_filesystem_size_bytes{instance="192.168.1.121:9100", job="node_exporters collector", device!~"rootfs"} - node_filesystem_avail_bytes{instance="192.168.1.121:9100", job="node_exporters collector", device!~"rootfs"}) / node_filesystem_size_bytes{instance="192.168.1.121:9100", job="node_exporters collector", device!~"rootfs"}) * 100
+        format: time_series
+        instant: true
+        interval: ""
+        intervalFactor: 1
+        intervalMs: 15000
+        legendFormat: '{{mountpoint}}'
+        maxDataPoints: 43200
+        range: false
+        refId: A
+        step: 240
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 79
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    dashboardUid: rYdddlPWk
+    panelId: 152
+    noDataState: NoData
+    execErrState: Error
+    annotations:
+      __dashboardUid__: rYdddlPWk
+      __panelId__: "152"
+    labels: {}
+    isPaused: false
+    notification_settings:
+      receiver: Email to Mine

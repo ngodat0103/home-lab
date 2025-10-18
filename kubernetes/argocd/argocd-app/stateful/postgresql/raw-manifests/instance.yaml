@@ -7,26 +7,36 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  imageName: "ghcr.io/cloudnative-pg/postgresql:16.9"
-  affinity:
-    nodeSelector:
-      node-role.kubernetes.io/control-plane: "true"
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.9
+  affinity: {}
   # According to requirement of Gitlab
   # https://docs.gitlab.com/install/requirements/#postgresql-tuning
   resources:
-    requests:
-      memory: 1Gi
     limits:
       memory: 4Gi
   managed:
+    services:
+      additional:
+      - selectorType: rw
+        serviceTemplate:
+          metadata:
+            name: postgresql-externnal-rw
+          spec:
+            type: LoadBalancer
+      - selectorType: ro
+        serviceTemplate:
+          metadata:
+            name: postgresql-externnal-ro
+          spec:
+            type: LoadBalancer
     roles:
     - name: vaultwarden
       ensure: present
-      comment: "Role for Vaultwarden"
+      comment: Role for Vaultwarden
       login: true
       superuser: false
       passwordSecret:
-        name: "vaultwarden-db"
+        name: vaultwarden-db
     - name: gitlab
       ensure: present
       comment: "Role for Gitlab"
@@ -43,5 +53,5 @@ spec:
         name: nextcloud-db
   instances: 3
   storage:
-    size: 10Gi
+    size: 20Gi
     storageClass: local-path
