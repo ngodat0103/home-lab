@@ -7,7 +7,7 @@ discovery.docker "linux" {
   host = "unix:///var/run/docker.sock"
 }
 
-// --- Relabel rules (strip leading "/" from container name; add instance) ---
+// --- Relabel rules for Docker (strip leading "/" from container name; add instance) ---
 discovery.relabel "logs_integrations_docker" {
   targets = []
 
@@ -25,85 +25,62 @@ discovery.relabel "logs_integrations_docker" {
   }
 }
 
-// --- Log processing pipeline: extract log_level ---
-loki.process "parse_level" {
+// --- Log processing pipeline for Docker: extract log_level ---
+loki.process "parse_docker_level" {
   // 1) Try JSON logs first: capture a variety of common level fields
   stage.json {
-    // Each expression creates an extracted field
-    // Prefer to write into the same extracted key "log_level" where possible
     expressions = {
-      log_level       = "level",         // {"level":"info"}
-      severity        = "severity",      // {"severity":"warn"}
-      log_dot_level   = "log.level",     // {"log":{"level":"error"}}
-      lvl             = "lvl",     // {"lvl":"debug"}
-      message         = "message",       // optional: useful to keep around
-      msg             = "msg",           // optional
+      log_level       = "level",
+      severity        = "severity",
+      log_dot_level   = "log.level",
+      lvl             = "lvl",
+      message         = "message",
+      msg             = "msg",
     }
-    // 'source' defaults to the full log line; JSON parse will no-op if not JSON
   }
 
-  // 2) If JSON didn’t have it, try to lift alternatives into "log_level"
-  //    a) severity -> log_level
+  // 2) If JSON didn't have it, try to lift alternatives into "log_level"
   stage.regex {
-    // If severity exists and log_level not set, copy severity
-    // This matches "severity=<word>" OR an extracted field already present.
-    // The (?P<log_level>...) wins only when not already set by JSON above.
     expression = "(?i)(?:^|[\\s\\{\\[,])severity[=:\"\\s]*?(?P<log_level>[a-z]+)"
   }
 
-  //    b) lvl -> log_level
   stage.regex {
     expression = "(?i)(?:^|[\\s\\{\\[,])lvl[=:\"\\s]*?(?P<log_level>[a-z]+)"
   }
 
   // 3) Plain-text patterns
-  //    a) Bracket prefix: [INFO] something...
   stage.regex {
     expression = "^[\\[\\(](?P<log_level>[A-Za-z]+)[\\]\\)]"
   }
 
-  //    b) Key=Value anywhere: level=ERROR / level: warn
   stage.regex {
     expression = "(?i)(?:^|\\s)level\\s*[:=]\\s*(?P<log_level>[A-Za-z]+)"
   }
 
-  //    c) Leading word as level: "ERROR: ..." or "warn - ..."
   stage.regex {
     expression = "^(?P<log_level>(?i:trace|debug|info|warn|warning|error|fatal|critical))\\b[:\\-\\s]"
   }
 
-  // 4) Publish labels
-  //    If "log_level" was captured by any stage above, this exposes it as a label.
+  // 4) Parse Nginx/Traefik access logs
+  stage.regex {
+    expression = "^(?P<client_ip>\\S+) \\S+ \\S+ \\[(?P<timestamp>[^\\]]+)\\] \"(?P<method>[A-Z]+) (?P<path>[^ ]+) (?P<protocol>[^\"]+)\" (?P<status>\\d+) (?P<bytes_sent>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\" (?P<request_id>\\d+) \"(?P<router_name>[^\"]+)\" \"(?P<upstream_url>[^\"]+)\" (?P<duration>\\d+ms)"
+  }
+
+  // 5) Publish labels
   stage.labels {
     values = {
-      log_level = "",       // take the extracted field "log_level" (if present)
-      container_name = "",  // already set by discovery.relabel (exposes as label on the entry)
-      instance = "" ,       // already set by discovery.relabel
+      log_level      = "",
+      container_name = "",
+      instance       = "",
+      client_ip      = "",
+      method         = "",
+      path           = "",
+      status         = "",
+      router_name    = "",
+      duration       = "",
     }
   }
 
-  // 5) (Optional) Default missing level to "info"
-  //    Uncomment the block below if you *always* want a level.
-  /*
-  stage.labels {
-    values = {
-      log_level = "info"
-    }
-  }
-  */
-  stage.regex {
-  expression = "^(?P<client_ip>\\S+) \\S+ \\S+ \\[(?P<timestamp>[^\\]]+)\\] \"(?P<method>[A-Z]+) (?P<path>[^ ]+) (?P<protocol>[^\"]+)\" (?P<status>\\d+) (?P<bytes_sent>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\" (?P<request_id>\\d+) \"(?P<router_name>[^\"]+)\" \"(?P<upstream_url>[^\"]+)\" (?P<duration>\\d+ms)"
-}
-stage.labels {
-  values = {
-    client_ip    = "",
-    method       = "",
-    path         = "",
-    status       = "",
-    router_name  = "",
-    duration     = "",
-  }
-}
   forward_to = [loki.write.local.receiver]
 }
 
@@ -112,7 +89,182 @@ loki.source.docker "default" {
   host          = "unix:///var/run/docker.sock"
   targets       = discovery.docker.linux.targets
   relabel_rules = discovery.relabel.logs_integrations_docker.rules
-  forward_to    = [loki.process.parse_level.receiver]
+  forward_to    = [loki.process.parse_docker_level.receiver]
+}
+
+// ########################################
+// #### Ubuntu System Logs Collection ####
+// ########################################
+
+// --- Read /var/log/syslog ---
+local.file_match "syslog" {
+  path_targets = [{
+    __path__ = "/var/log/syslog",
+    job      = "syslog",
+    instance = constants.hostname,
+    log_type = "system",
+  }]
+}
+
+// --- Read dmesg (kernel ring buffer) ---
+// Note: dmesg is typically read via command, not file
+// We'll use journald for kernel logs or read /var/log/kern.log
+local.file_match "kernel" {
+  path_targets = [{
+    __path__ = "/var/log/kern.log",
+    job      = "kernel",
+    instance = constants.hostname,
+    log_type = "kernel",
+  }]
+}
+
+// --- Read auth logs ---
+local.file_match "auth" {
+  path_targets = [{
+    __path__ = "/var/log/auth.log",
+    job      = "auth",
+    instance = constants.hostname,
+    log_type = "auth",
+  }]
+}
+
+// --- Process syslog format logs ---
+loki.process "parse_syslog" {
+  // Parse standard syslog format:
+  // Nov 11 10:30:45 hostname service[pid]: message
+  stage.regex {
+    expression = "^(?P<timestamp>\\w+\\s+\\d+\\s+\\d+:\\d+:\\d+)\\s+(?P<hostname>\\S+)\\s+(?P<service>\\w+)(\\[(?P<pid>\\d+)\\])?:\\s+(?P<message>.*)"
+  }
+
+  // Extract log level from message
+  stage.regex {
+    source    = "message"
+    expression = "(?i)\\b(?P<log_level>emerg|alert|crit|critical|err|error|warn|warning|notice|info|debug)\\b"
+  }
+
+  // Parse systemd journal format if present
+  stage.regex {
+    expression = "(?i)(?P<service>systemd|kernel|sshd|sudo|cron|docker).*?(?P<log_level>error|warning|info|debug|critical|fatal)"
+  }
+
+  // Publish labels
+  stage.labels {
+    values = {
+      hostname   = "",
+      service    = "",
+      pid        = "",
+      log_level  = "",
+      job        = "",
+      instance   = "",
+      log_type   = "",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+// --- Process kernel logs ---
+loki.process "parse_kernel" {
+  // Parse kernel log format:
+  // [timestamp] message
+  stage.regex {
+    expression = "^(?P<timestamp>\\w+\\s+\\d+\\s+\\d+:\\d+:\\d+)\\s+(?P<hostname>\\S+)\\s+kernel:\\s+\\[\\s*(?P<kernel_time>[\\d\\.]+)\\]\\s+(?P<message>.*)"
+  }
+
+  // Extract log level from kernel messages
+  stage.regex {
+    source    = "message"
+    expression = "^<(?P<priority>\\d)>|(?i)\\b(?P<log_level>emerg|alert|crit|err|warn|notice|info|debug)\\b"
+  }
+
+  // Map kernel priority to log level
+  stage.template {
+    source   = "priority"
+    template = "{{ if eq .priority \"0\" }}emerg{{ else if eq .priority \"1\" }}alert{{ else if eq .priority \"2\" }}crit{{ else if eq .priority \"3\" }}err{{ else if eq .priority \"4\" }}warn{{ else if eq .priority \"5\" }}notice{{ else if eq .priority \"6\" }}info{{ else }}debug{{ end }}"
+  }
+
+  stage.labels {
+    values = {
+      hostname    = "",
+      kernel_time = "",
+      log_level   = "",
+      priority    = "",
+      job         = "",
+      instance    = "",
+      log_type    = "",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+// --- Read syslog file ---
+loki.source.file "syslog" {
+  targets    = local.file_match.syslog.targets
+  forward_to = [loki.process.parse_syslog.receiver]
+}
+
+// --- Read kernel log file ---
+loki.source.file "kernel" {
+  targets    = local.file_match.kernel.targets
+  forward_to = [loki.process.parse_kernel.receiver]
+}
+
+// --- Read auth log file ---
+loki.source.file "auth" {
+  targets    = local.file_match.auth.targets
+  forward_to = [loki.process.parse_syslog.receiver]
+}
+
+// --- Alternative: Use journald for dmesg (recommended) ---
+loki.source.journal "dmesg" {
+  format_as_json = true
+  max_age        = "12h"
+  
+  // Filter for kernel messages only
+  matches = "_TRANSPORT=kernel"
+  
+  labels = {
+    job      = "dmesg",
+    instance = constants.hostname,
+    log_type = "kernel",
+  }
+
+  forward_to = [loki.process.parse_journald.receiver]
+}
+
+// --- Process journald logs ---
+loki.process "parse_journald" {
+  // Extract fields from journald JSON
+  stage.json {
+    expressions = {
+      message       = "MESSAGE",
+      priority      = "PRIORITY",
+      syslog_id     = "SYSLOG_IDENTIFIER",
+      systemd_unit  = "_SYSTEMD_UNIT",
+      hostname      = "_HOSTNAME",
+    }
+  }
+
+  // Map journald priority (0-7) to log level
+  stage.template {
+    source   = "priority"
+    template = "{{ if eq .priority \"0\" }}emerg{{ else if eq .priority \"1\" }}alert{{ else if eq .priority \"2\" }}crit{{ else if eq .priority \"3\" }}err{{ else if eq .priority \"4\" }}warn{{ else if eq .priority \"5\" }}notice{{ else if eq .priority \"6\" }}info{{ else }}debug{{ end }}"
+  }
+
+  stage.labels {
+    values = {
+      log_level    = "",
+      syslog_id    = "",
+      systemd_unit = "",
+      hostname     = "",
+      job          = "",
+      instance     = "",
+      log_type     = "",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
 }
 
 // --- Write to Loki ---
