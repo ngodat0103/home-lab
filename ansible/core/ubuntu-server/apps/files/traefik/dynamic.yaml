@@ -11,7 +11,19 @@ http:
       service: teleport
       tls:
         certResolver: letsencrypt
+    sonarqube-tcp:
+      entryPoints:
+      - websecure
+      - web
+      rule: Host(`sonarqube.datrollout.dev`)
+      service: sonarqube
+      tls:
+        certResolver: letsencrypt
   services:
+    sonarqube:
+      loadBalancer:
+        servers:
+        - url: http://192.168.1.125:9000
     teleport:
       loadBalancer:
         serversTransport: internal-skip-verify

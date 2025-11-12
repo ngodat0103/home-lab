@@ -39,6 +39,10 @@ module "ddns_records" {
       type = "CNAME"
       proxied = true
     }
+     sonarqube = {
+      type = "CNAME"
+      proxied = true
+    }
   }
 }
 
