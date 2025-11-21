@@ -43,6 +43,10 @@ module "ddns_records" {
       type = "CNAME"
       proxied = true
     }
+    teleport = {
+      type = "CNAME"
+      proxied = true
+    }
   }
 }
 
