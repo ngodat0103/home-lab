@@ -8,3 +8,6 @@ output "k8s-masters" {
 output "k8s-workers" {
   value = module.k8s_workers
 }
+output "duc_vm" {
+  value = module.duc-vm
+}

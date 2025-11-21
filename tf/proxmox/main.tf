@@ -178,7 +178,7 @@ module "lxc_production" {
 }
 
 module "k8s_masters" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=6f39b777d167018579fe92c1c30d8fc2e22c3c9f"
   count             = 3
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "master-nodes-${count.index}.local"
@@ -201,7 +201,7 @@ module "k8s_masters" {
   }
 }
 module "k8s_workers" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=6f39b777d167018579fe92c1c30d8fc2e22c3c9f"
   count             = 4
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "worker-nodes-${count.index}.local"
@@ -252,14 +252,14 @@ module "hephaestus" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "hephaestus"
-  tags =["Gitlab-runner","Github-runner","production"]
+  tags              = ["Gitlab-runner", "Github-runner", "production"]
   hostname          = "hephaestus.local"
   node_name         = local.node_name
   ip_address        = "192.168.1.124/24"
   bridge_name       = "vmbr0"
   memory            = 1024 * 4
   gateway           = local.lan_gateway
-  description = "The server to run multiple CI tools such as Github Runner, Gitlab Runner"
+  description       = "The server to run multiple CI tools such as Github Runner, Gitlab Runner"
   on_boot           = true
   boot_disk_size    = 150
   cpu_cores         = 2
@@ -275,7 +275,7 @@ module "sonarqube" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "sonarqube"
-  tags =["Sonarqube","production"]
+  tags              = ["Sonarqube", "production"]
   hostname          = "sonarqube.local"
   node_name         = local.node_name
   ip_address        = "192.168.1.125/24"
@@ -322,10 +322,11 @@ module "sophos" {
 }
 
 module "duc-vm" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
+
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=6f39b777d167018579fe92c1c30d8fc2e22c3c9f"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   name              = "duc-vm"
-  tags =["production"]
+  tags              = ["production"]
   hostname          = "ducvm.local"
   node_name         = local.node_name
   ip_address        = "192.168.1.126/24"
@@ -335,7 +336,7 @@ module "duc-vm" {
   on_boot           = true
   boot_disk_size    = 50
   cpu_cores         = 1
-  cpu_type = "host"
+  cpu_type          = "host"
   public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDNmZMj5e5ZIFZshGc29JdjR0n4+xkwhccKZICZyOw7+59xINbrbEXBHxIkhBdChWeZRvlu+ceFyc24fl06O2qFdasahGQIstKhIQ9BnVT9zxJNkKf/ZP2gD74XcAcQU3nAp7cKFCq57jLhcdbSxXprDcuDtBswoABOWIsjMTBYqftoyuG0lHsfWe014J3E3XCP21qG1OBjcgUv5of8r7d9OeYBh8D4OTBi7ec5tl4pstiQMvibURdTEe/BIpnIt63nDJZTBmKauQ3/4H1IQ+QvVnAfgfwksrSvyim00YCTs72L52wHbohZRQ+QyDrmqr5w4bt70X6m9vL8y4+JbaOH14rGTYxT+nDYUGAmcx0JsSgEL3zzBdIN0FmFTxk7VsVtfOkh3s8EyS1bZn7yhPuCxnCmFtp0/NglKcKxfarflhA02on3tvDCF4BAOP5LIC5tslOvTablFSBa1LTSCmC6Bm9kiVkVNVvGEjIrlJYiu5g0xnTFyRkpIhBpkg40T0M="
   network_model     = "e1000e"
   startup_config = {
