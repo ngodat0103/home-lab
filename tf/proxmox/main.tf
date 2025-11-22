@@ -8,6 +8,7 @@ locals {
   vm_template = {
     #Reference: https://cloud-images.ubuntu.com/jammy/current/
     ubuntu_2204 = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+    debian_13   = "https://cdimage.debian.org/images/cloud/trixie/20251117-2299/debian-13-generic-amd64-20251117-2299.qcow2"
   }
   iso_templates = {
     sophos = "https://nextcloud.datrollout.dev/public.php/dav/files/BiH9Z3kMCA77ns4/?accept=zip"
@@ -227,7 +228,7 @@ module "k8s_workers" {
 
 module "vpn_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
-  template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
+  template_image_id = resource.proxmox_virtual_environment_download_file.vm["debian_13"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
   tags              = ["ipsec", "wireguard", "development"]
