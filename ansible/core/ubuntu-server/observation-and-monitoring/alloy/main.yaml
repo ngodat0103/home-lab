@@ -5,7 +5,6 @@
     uid: 473
     config_path: /etc/alloy/
     docker_group_id: 999
-
   tasks:
   - name: Create user Alloy
     ansible.builtin.user:
@@ -33,6 +32,7 @@
       volumes:
       - "{{config_path}}:/etc/alloy/:ro"
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/:/var/log/:ro
       user: "{{uid}}:{{docker_group_id}}"
       networks:
       - name: runtime-network

@@ -19,6 +19,16 @@
       source: "192.168.1.121/32"
       destination: "192.168.99.2"
       jump: ACCEPT
+   - name: "Ensure ip from sonarqube connect to the database"
+     ansible.builtin.iptables:
+      table: raw
+      chain: PREROUTING
+      action: insert
+      rule_num: 1
+      state: present
+      source: "192.168.1.125/32"
+      destination: "192.168.99.2"
+      jump: ACCEPT
    - name: Drop packet if ip is not my worksation
      ansible.builtin.iptables:
       table: raw

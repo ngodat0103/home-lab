@@ -5,7 +5,6 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
-
 common:
   ring:
     instance_addr: 127.0.0.1
@@ -23,7 +22,36 @@ schema_config:
     index:
       prefix: index_
       period: 24h
-
+query_range:
+  align_queries_with_step: true
+  max_retries: 5
+  cache_results: true
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 500
+        ttl: 24h
+compactor:
+  working_directory: /data/retention
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
+  delete_request_store: filesystem
 storage_config:
   filesystem:
     directory: /data/chunks
+limits_config:
+  # Retention period: 7 days
+  retention_period: 168h
+  max_query_length: 721h
+  max_query_lookback: 168h
+  max_query_parallelism: 32
+  max_query_series: 500
+  max_entries_limit_per_query: 5000
+  max_streams_per_user: 0
+  max_global_streams_per_user: 0
+  max_chunks_per_query: 2000000
+  cardinality_limit: 100000
+  split_queries_by_interval: 15m

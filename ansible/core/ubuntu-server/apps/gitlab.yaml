@@ -88,4 +88,5 @@
       name: "Backup Gitlab daily at 1AM"
       state: present
       hour: 1
+      minute: 10
       job: "{{GITLAB_HOME_DIR}}/backup.sh > {{GITLAB_BACKUP_DIR}}/info.log 2> {{GITLAB_BACKUP_DIR}}/error.log"

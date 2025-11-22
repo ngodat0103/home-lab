@@ -2,7 +2,6 @@
   hosts: ubuntu-server
   become: true
   vars:
-    node_exporter_textfile_dir: /var/lib/node_exporter/textfile_collector
     disk_monitoring_home_dir: "/opt/disk-monitoring"
   pre_tasks:
   - name: Ensure deps (jq, smartmontools, nvme-cli, moreutils/sponge)
@@ -42,10 +41,3 @@
     vars:
       ansible_facts_services: "{{ ansible_facts.services | default({}) }}"
     register: _smart_install
-  - name: Ensure textfile dir exists
-    ansible.builtin.file:
-      path: "{{ node_exporter_textfile_dir }}"
-      state: directory
-      owner: root
-      group: root
-      mode: "0700"

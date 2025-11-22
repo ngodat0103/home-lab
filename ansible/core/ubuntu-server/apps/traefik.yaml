@@ -3,6 +3,7 @@
   become: yes
   handlers:
    - name: restart
+     ignore_errors: true
      ansible.builtin.command:
       cmd: ["bash","docker","restart","traefik"]
   vars:
@@ -51,6 +52,7 @@
       group: "{{id}}"
       mode: '600'
    - name: Copy dynamic config
+     notify: restart
      ansible.builtin.copy:
       src: files/traefik/dynamic.yaml
       dest: /etc/traefik/dynamic.yaml

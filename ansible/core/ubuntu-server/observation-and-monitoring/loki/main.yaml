@@ -30,6 +30,10 @@
       name: loki
       image: "grafana/loki:3.5.7-amd64"
       command: "-config.file /etc/loki/loki-config.yaml"
+      log_driver: 'json-file'
+      log_options:
+       max-size: 1024m
+       max-file: 2
       volumes:
        - "{{config_path}}:/etc/loki/:ro"
        - "{{data_path}}:/data"

@@ -24,7 +24,7 @@ module "ddns_records" {
   dns_records = {
     nextcloud = {
       type = "CNAME"
-      proxied = false
+      proxied = true
       ttl = 360
     }
     jellyfin = {
@@ -33,9 +33,19 @@ module "ddns_records" {
     }
     gitlab = {
       type = "CNAME"
+      proxied = true
     }
     bitwarden = {
       type = "CNAME"
+      proxied = true
+    }
+     sonarqube = {
+      type = "CNAME"
+      proxied = true
+    }
+    teleport = {
+      type = "CNAME"
+      proxied = false
     }
   }
 }

@@ -1,0 +1,11 @@
+kind: role
+version: v7
+metadata:
+  name: duc-vm
+spec:
+  allow:
+    logins: [ "root" ]
+    node_labels:
+      "owner": "duc"
+  options:
+    max_session_ttl: 8h
