@@ -15,8 +15,8 @@ get_vms_by_tag() {
 }
 
 # Get VM IDs for workers and masters
-WORKERS=$(get_vms_by_tag "Kubernetes-workers")
-MASTERS=$(get_vms_by_tag "Kubernetes-masters")
+WORKERS=$(get_vms_by_tag "kubernetes-workers")
+MASTERS=$(get_vms_by_tag "kubernetes-masters")
 
 echo -e "📌 Workers:\n$WORKERS"
 echo -e "📌 Masters:\n$MASTERS"

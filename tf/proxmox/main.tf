@@ -179,7 +179,7 @@ module "lxc_production" {
 }
 
 module "k8s_masters" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=6f39b777d167018579fe92c1c30d8fc2e22c3c9f"
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   count             = 3
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "master-nodes-${count.index}.local"
@@ -197,13 +197,13 @@ module "k8s_masters" {
   vm_id             = 300 + count.index
   startup_config = {
     order      = 3
-    up_delay   = 30
+    up_delay   = 3
     down_delay = 30
   }
 }
 module "k8s_workers" {
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=6f39b777d167018579fe92c1c30d8fc2e22c3c9f"
-  count             = 4
+  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
+  count             = 5
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
   hostname          = "worker-nodes-${count.index}.local"
   name              = "worker-nodes-${count.index}"
@@ -220,12 +220,10 @@ module "k8s_workers" {
   vm_id             = 310 + count.index
   startup_config = {
     order      = 4
-    up_delay   = 30
+    up_delay   = 10
     down_delay = 30
   }
 }
-
-
 module "vpn_server" {
   source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=f9652095671a8fcdf54c97caffc7bedcc2df3948"
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["debian_13"].id
@@ -235,7 +233,7 @@ module "vpn_server" {
   node_name         = local.node_name
   ip_address        = "192.168.1.123/24"
   bridge_name       = "vmbr0"
-  memory            = 1024 * 0.5
+  memory            = 1024 * 2
   gateway           = local.lan_gateway
   on_boot           = false
   boot_disk_size    = 10
