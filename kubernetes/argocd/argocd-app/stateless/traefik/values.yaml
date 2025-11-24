@@ -884,9 +884,9 @@ persistence:
   enabled: true
   name: data
   existingClaim: ""
-  accessMode: ReadWriteOnce
+  accessMode: ReadWriteMany
   size: 128Mi
-  storageClass: "local-path"
+  storageClass: "longhorn"
   volumeName: ""
   path: /data
   annotations: {}
