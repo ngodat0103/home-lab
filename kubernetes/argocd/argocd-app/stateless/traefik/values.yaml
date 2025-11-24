@@ -1,22 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/traefik/traefik-helm-chart/refs/tags/v37.0.0/traefik/values.yaml
-
-# Default values for Traefik
-# This is a YAML-formatted file.
-# Declare variables to be passed into templates
-image:
-  # @schema additionalProperties: false
-  # -- Traefik image host registry
-  registry: docker.io
-  # -- Traefik image repository
-  repository: traefik
-  # -- defaults to appVersion. It's used for version checking, even prefixed with experimental- or latest-.
-  # When a digest is required, `versionOverride` can be used to set the version.
-  tag:
-    # @schema type:[string, null]
-    # -- Traefik image pull policy
-  pullPolicy: IfNotPresent
-# -- Add additional label to all resources
-commonLabels: {}
+# yaml-language-server: $schema=https://raw.githubusercontent.com/traefik/traefik-helm-chart/refs/tags/v37.4.0/traefik/values.yaml
 
 deployment:
   # -- Enable deployment
@@ -91,33 +73,6 @@ deployment:
     volumeMounts:
     - name: data
       mountPath: /data
-  # -- Use process namespace sharing
-  shareProcessNamespace: false
-  # -- Custom pod DNS policy. Apply if `hostNetwork: true`
-  dnsPolicy: ""
-  # -- Custom pod [DNS config](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#poddnsconfig-v1-core)
-  dnsConfig: {}
-  # -- Custom [host aliases](https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/)
-  hostAliases: []
-  # -- Pull secret for fetching traefik container image
-  imagePullSecrets: []
-  # -- Pod lifecycle actions
-  lifecycle: {}
-  # preStop:
-  #   sleep:
-  #     seconds: 20
-  # postStart:
-  #   httpGet:
-  #     path: /ping
-  #     port: 8080
-  #     host: localhost
-  #     scheme: HTTP
-  # -- Set a runtimeClassName on pod
-  runtimeClassName: ""
-  # -- Percentage of memory limit to set for GOMEMLIMIT
-  # -- set as decimal (0.9 = 90%, 0.95 = 95% etc)
-  # -- only takes effect when resources.limits.memory is set
-  goMemLimitPercentage: 0.9
 
 # -- [Pod Disruption Budget](https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/)
 podDisruptionBudget:
@@ -925,7 +880,6 @@ autoscaling:
     apiVersion: apps/v1
     kind: Deployment
     name: "{{ template \"traefik.fullname\" . }}"
-
 persistence:
   # -- Enable persistence using Persistent Volume Claims
   # ref: http://kubernetes.io/docs/user-guide/persistent-volumes/.
@@ -935,13 +889,12 @@ persistence:
   existingClaim: ""
   accessMode: ReadWriteOnce
   size: 128Mi
-  storageClass: ""
+  storageClass: "local-path"
   volumeName: ""
   path: /data
   annotations: {}
   # -- Only mount a subpath of the Volume into the pod
   subPath: ""
-
 # -- Certificates resolvers configuration.
 # Ref: https://doc.traefik.io/traefik/https/acme/#certificate-resolvers
 # See EXAMPLES.md for more details.
