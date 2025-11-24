@@ -13,6 +13,6 @@
 [submodule "ansible/kubernetes/kubespray"]
 	path = ansible/kubernetes/kubespray
 	url = https://github.com/kubernetes-sigs/kubespray.git
-[submodule "ansible/core/vpn-server/wireguard-role"]
-	path = ansible/core/vpn-server/wireguard-role
-	url = https://github.com/githubixx/ansible-role-wireguard.git
+[submodule "ansible/core/vpn-server/openvpn-role"]
+	path = ansible/core/vpn-server/openvpn-role
+	url = https://github.com/ngodat0103/ansible-role-openvpn.git

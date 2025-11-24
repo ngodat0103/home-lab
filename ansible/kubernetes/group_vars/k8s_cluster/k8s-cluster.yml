@@ -15,7 +15,6 @@ kube_cert_dir: "{{ kube_config_dir }}/ssl"
 kube_token_dir: "{{ kube_config_dir }}/tokens"
 
 kube_api_anonymous_auth: true
-
 # Where the binaries will be downloaded.
 # Note: ensure that you've enough disk space (about 1G)
 local_release_dir: "/tmp/releases"
@@ -164,7 +163,7 @@ dns_mode: coredns
 # Set manual server if using a custom cluster DNS server
 # manual_dns_server: 10.x.x.x
 # Enable nodelocal dns cache
-enable_nodelocaldns: true
+enable_nodelocaldns: false
 enable_nodelocaldns_secondary: false
 nodelocaldns_ip: 169.254.25.10
 nodelocaldns_health_port: 9254

@@ -1,7 +1,114 @@
-- name: Manage wireguard
+---
+- name: Configure OpenVPN with OTP (Google Authenticator)
   hosts: vpn-server
+  become: yes
+  vars:
+    openvpn_server_conf: /etc/openvpn/server/server.conf
+    openvpn_pam_file: /etc/pam.d/openvpn
+    openvpn_status_log: /var/log/openvpn-status.log
+    openvpn_otp_users: []
+  pre_tasks:
+    - name: Ensure APT cache is up to date
+      ansible.builtin.apt:
+        update_cache: yes
+    - name: Create openvpn server
+      ansible.builtin.include_role:
+        name: openvpn-role
+      vars:
+        openvpn_role: "server"
   tasks:
-   - name: install wireguard using role
-     tags: ["install"]
-     ansible.builtin.include_role:
-      name: wireguard-role
+    - name: Install Google Authenticator PAM module
+      ansible.builtin.apt:
+        name:
+          - libpam-google-authenticator
+        state: present
+  #   - name: Ensure OpenVPN status log file exists
+  #     file:
+  #       path: "{{ openvpn_status_log }}"
+  #       state: touch
+  #       owner: root
+  #       group: root
+  #       mode: "0640"
+  #   - name: Ensure OpenVPN config file file exists
+  #     file:
+  #       path: "{{ openvpn_server_conf }}"
+  #       state: touch
+  #       owner: root
+  #       group: root
+  #       mode: "0640"
+  #   - name: Configure OpenVPN server.conf for PAM + auth-user-pass
+  #     blockinfile:
+  #       path: "{{ openvpn_server_conf }}"
+  #       marker: "# {mark} ANSIBLE OPENVPN OTP CONFIG"
+  #       block: |
+  #         # Enable username/password (PAM) authentication
+  #         plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
+
+  #         # Require username/password from client
+  #         auth-user-pass
+
+  #         # Don't require client cert CN to match username
+  #         verify-client-cert none
+  #         username-as-common-name
+
+  #         # Optional: status logging for monitoring
+  #         status {{ openvpn_status_log }}
+  #         status-version 2
+
+  #     notify: Restart OpenVPN
+
+  #   # PAM MODE 1: OTP + Linux password
+  #   # Comment this task and uncomment the "OTP only" one below
+  #   - name: Configure PAM for OpenVPN (OTP + Linux password)
+  #     copy:
+  #       dest: "{{ openvpn_pam_file }}"
+  #       owner: root
+  #       group: root
+  #       mode: "0644"
+  #       content: |
+  #         # PAM config for OpenVPN using Google Authenticator (OTP) + UNIX password
+
+  #         auth     sufficient   pam_google_authenticator.so forward_pass
+  #         auth     required     pam_unix.so use_first_pass
+  #         account  required     pam_unix.so
+  #     notify: Restart OpenVPN
+
+  #   # PAM MODE 2: OTP only (no Linux password)
+  #   # Uncomment this block if you want OTP ONLY mode and comment the block above
+  #   # - name: Configure PAM for OpenVPN (OTP only)
+  #   #   copy:
+  #   #     dest: "{{ openvpn_pam_file }}"
+  #   #     owner: root
+  #   #     group: root
+  #   #     mode: "0644"
+  #   #     content: |
+  #   #       # PAM config for OpenVPN using Google Authenticator (OTP only)
+  #   #
+  #   #       auth     required   pam_google_authenticator.so nullok
+  #   #       account  required   pam_permit.so
+  #   #   notify: Restart OpenVPN
+
+  #   # OPTIONAL: Initialize Google Authenticator non-interactively for each VPN user
+  #   # This will create ~/.google_authenticator for each user in openvpn_otp_users
+  #   - name: Ensure OTP secrets exist for each VPN user
+  #     become: yes
+  #     become_user: "{{ item }}"
+  #     command: >
+  #       google-authenticator
+  #       -t        # time-based
+  #       -d        # disallow multiple uses
+  #       -f        # no interactive confirmation; overwrite existing file
+  #       -r 3      # 3 login attempts
+  #       -R 30     # 30-second window
+  #       -w 3      # window of 3 codes
+  #     args:
+  #       creates: "/home/{{ item }}/.google_authenticator"
+  #     loop: "{{ openvpn_otp_users }}"
+  #     when: openvpn_otp_users | length > 0
+
+  # handlers:
+  #   - name: Restart OpenVPN
+  #     service:
+  #       name: "openvpn@server"
+  #       state: restarted
+  #       enabled: yes

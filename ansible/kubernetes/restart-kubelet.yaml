@@ -1,0 +1,9 @@
+
+- hosts: all
+  name: Restart all Kubelet
+  become: yes
+  tasks:
+  - name: Restart kubelet
+    systemd:
+      name: kubelet
+      state: restarted
