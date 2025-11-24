@@ -22,6 +22,10 @@
         name:
           - libpam-google-authenticator
         state: present
+    - name: "Create user akira"
+      ansible.builtin.user:
+       name: akira
+       create_home: true
   #   - name: Ensure OpenVPN status log file exists
   #     file:
   #       path: "{{ openvpn_status_log }}"
