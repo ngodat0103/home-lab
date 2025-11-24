@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+spec:
+  project: default
+  revisionHistoryLimit: 3
+  destination:
+    namespace: metrics-server
+    name: in-cluster
+  syncPolicy:
+    syncOptions: [ "ServerSideApply=true", "CreateNamespace=true" ]
+    automated:
+      enabled: true
+      prune: true
+  sources:
+  - repoURL: https://kubernetes-sigs.github.io/metrics-server
+    targetRevision: 3.13.0
+    chart: metrics-server
+    helm:
+      valuesObject:
+        args: [ "--kubelet-insecure-tls" ]
