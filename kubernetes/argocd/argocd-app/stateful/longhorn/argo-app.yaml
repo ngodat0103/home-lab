@@ -4,7 +4,7 @@ metadata:
   namespace: argocd
   name: longhorn-prod
 spec:
-  revisionHistoryLimit: 5
+  revisionHistoryLimit: 3
   project: default
   destination:
     name: in-cluster
@@ -18,10 +18,10 @@ spec:
   sources:
   - repoURL: https://charts.longhorn.io
     chart: longhorn
-    targetRevision: 1.7.3
+    targetRevision: 1.9.2
     helm:
       valueFiles:
       - $config/kubernetes/argocd/argocd-app/stateful/longhorn/values.yaml
   - repoURL: https://github.com/ngodat0103/home-lab.git
-    targetRevision: config/continue
+    targetRevision: master
     ref: config
