@@ -27,10 +27,6 @@ module "ddns_records" {
       proxied = true
       ttl = 360
     }
-    jellyfin = {
-      type = "CNAME"
-      proxied = false
-    }
     gitlab = {
       type = "CNAME"
       proxied = true
@@ -42,10 +38,6 @@ module "ddns_records" {
      sonarqube = {
       type = "CNAME"
       proxied = true
-    }
-    teleport = {
-      type = "CNAME"
-      proxied = false
     }
   }
 }
