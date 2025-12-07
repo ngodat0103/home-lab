@@ -1,14 +1,3 @@
-terraform {
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 5"
-    }
-  }
-}
-provider "cloudflare" {
-  api_token = local.cloudflare_api_token
-}
 locals {
   cloudflare_api_token = var.cloudflare_api_token
   zone_id              = "ab6606e8b3aad0b66008eb26f2dd3660"
@@ -39,19 +28,22 @@ module "ddns_records" {
       type = "CNAME"
       proxied = true
     }
+     loki = {
+      type = "CNAME"
+      proxied = true
+    }
+     prometheus = {
+      type = "CNAME"
+      proxied = true
+    }
+    grafana = {
+      type = "CNAME"
+      proxied = true
+    }
   }
 }
 
 ## Firewall
-resource "null_resource" "download_uptimerobot_ips" {
-  provisioner "local-exec" {
-    command = "curl -o ${path.root}/uptimerobot-ips.txt https://uptimerobot.com/inc/files/ips/IPv4.txt"
-  }
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-}
-
 
 import {
   to = module.personal_firewall.cloudflare_ruleset.default
