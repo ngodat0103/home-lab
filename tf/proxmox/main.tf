@@ -1,4 +1,11 @@
-
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "bpg/proxmox"
+      version = "0.82.1"
+    }
+  }
+}
 locals {
   #Source: https://images.linuxcontainers.org/
   lxc_templates = {
@@ -9,9 +16,6 @@ locals {
     #Reference: https://cloud-images.ubuntu.com/jammy/current/
     ubuntu_2204 = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
     debian_13   = "https://cdimage.debian.org/images/cloud/trixie/20251117-2299/debian-13-generic-amd64-20251117-2299.qcow2"
-  }
-  iso_templates = {
-    sophos = "https://nextcloud.datrollout.dev/public.php/dav/files/BiH9Z3kMCA77ns4/?accept=zip"
   }
   node_name = "pve-master"
   network = {
@@ -60,14 +64,6 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   file_name    = "${each.key}.qcow2"
   datastore_id = "local"
   content_type = "import"
-  node_name    = local.node_name
-  url          = each.value
-}
-resource "proxmox_virtual_environment_download_file" "iso_templates" {
-  for_each     = local.iso_templates
-  file_name    = "${each.key}.iso"
-  datastore_id = "local"
-  content_type = "iso"
   node_name    = local.node_name
   url          = each.value
 }
@@ -229,13 +225,13 @@ module "vpn_server" {
   template_image_id = resource.proxmox_virtual_environment_download_file.vm["debian_13"].id
   name              = "vpn-server"
   hostname          = "vpn-server.local"
-  tags              = ["ipsec", "wireguard", "development"]
+  tags              = ["production", "openvpn"]
   node_name         = local.node_name
   ip_address        = "192.168.1.123/24"
   bridge_name       = "vmbr0"
   memory            = 1024 * 2
   gateway           = local.lan_gateway
-  on_boot           = false
+  on_boot           = true
   boot_disk_size    = 10
   cpu_cores         = 1
   public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsrn8bEdQQsmIOD192lsGXl0gdMZO9zESt4I8+QvIKjGvqYCWsR7Pi0LhvxD6jdm+dfIJymmQ6Qth9W0HgfHnUVZ9SEzW+vi3g2kSClutOA25IdelChrCw3jOrsYamITDH/J5mwb26ezGqx+32INM43seONN3pKuUL/C9WXVf4KMqvl2biAUJjaofRC3KuJUe2FJoA0j+pJZJ+ciCZBTg3CmAqjuUnQgWZOyhfaEDJ5m9q+u/anWKsBNxtJux7QGNyErKFNi3rg+c+yqkAAUfVO3a3N/mmezdaNlGjace3gFncjHfSDEye1RwJv+Oyd1d8mxzTjl9R4tNSOuHd8Xxd4FNwBFn1o1KRIyvur43Z3Aqj/3qWjTrhY5DoV920Wq7xZEr+u+BdQUF3nTzrqt/B48BJpxAm6CTHpq/OFXTD+ZFRaPIgJAG04sjp4oWOGS2ni40v4Y9vooweCqmr1kGog9nqcTU6lxV+umDjBc0ekdDAKnWnUOJzhP8rO5ogQ4c= akira@legion5"
@@ -285,58 +281,6 @@ module "sonarqube" {
   boot_disk_size    = 150
   cpu_cores         = 4
   public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCTbsuzpC3Crbmy8bq6NfKqGoJKrxFdSPz4+HSfE/gljWKzMimRQZY46j8JEK3tgZxHkgW8gRewV7cIyOkw0GbOnBjISQIO+zrPJjxJrdXR/odbOFQ+Xqpk6llHoZcNd15dDmVITD34QVyVvdNxm04lnOKKixuvjJ+rLn8FxSFED6oBeLF8H5JWodhn/GsK0ysQEJGHrE1JPfY73V0wr2rnKdAyYEYZvqj4XNcOkDAzGP7minTHQVyJC+b9PNu1SzRPimbkXio/pns/wDonc44lq1+XiBHr7vrny0lqLMZI8APmYfQ6F0lE2yAEnMNEET6c6mR8vpzSHXZH2g7b6N8etoTAZBM3e1ufrw7+E6LxOzULvIAXHzZOMlb8GeKrcrXc8j6KxPGAoHkXGU8evoEtNpd5wuNNNmtENbNtqopR6tpiMkifQSuzlWq2Vw6SX5RQXfQaeeiNc4j2iZpUw3ps8vKLZOB2a1r/QoTXyLKeJJr+EBvsz1SG9CzCC7KxwyM= akira@legion5"
-  network_model     = "e1000e"
-  startup_config = {
-    order      = 1
-    up_delay   = 30
-    down_delay = 1
-  }
-}
-
-module "sophos" {
-  source = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=3548fa45c1fa3ff63f5db69b18d8aea7c5cf9286"
-  cdrom = {
-    enabled = true
-    file_id = resource.proxmox_virtual_environment_download_file.iso_templates["sophos"].id
-  }
-  name           = "sophos"
-  hostname       = "sophos.local"
-  tags           = ["development", "firewall"]
-  node_name      = local.node_name
-  ip_address     = "192.168.1.124/24"
-  bridge_name    = "vmbr0"
-  memory         = 1024 * 4
-  gateway        = local.lan_gateway
-  on_boot        = true
-  boot_disk_size = 40
-  cpu_cores      = 4
-  cpu_type       = "host"
-  public_key     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/qU4CDx0D6p7HSvcLqMoYYLAkGzWMBundOTo3XqHvP0gqocYe/AlDzRHAS1N3uJEBmLa6FQEFxgoCjjUDBuNgul/OAaJq+yrOvrJ5NPie3y7/2FerJ1trCFPmywBf8TPNwTNLy2CStSTAdaG4tCkpSI78mlmBC2srnkdJ3NNobiwdSzqoTqp9soDhEaZV51/WX0vtxL3WZWXKsX0eDbwqXT9FfwEvRGuy2E7BT4Ksr2ablvWRAv5XjXwG1hK9ASsMNnaHqcpgwAy5fbXy+H/8COWdPAbd3E7oXajZ82Lu9YOWf3nYyy9E17yb2KjRei0pkGlmZQGz2IyPZNVvuYC7l9LU36pcxnv2EHesN5q51hScPEqUu50DmimebAhMLxvfe6yF3smReTiB6hKyke5963j6BbgFb6VS2SsYVcY41wBvDB2GDTGWHyI9h/ViPx5oL4PVx3pw0RYYa8KrtiNqiyjDC0F+NHqHCDud+mA3x25VzDN7Vlpl0Zv1e3PmqtE= akira@legion5"
-  network_model  = "e1000e"
-  startup_config = {
-    order      = 3
-    up_delay   = 30
-    down_delay = 10
-  }
-}
-
-module "duc-vm" {
-
-  source            = "git::https://github.com/ngodat0103/terraform-module.git//proxmox/vm?ref=6f39b777d167018579fe92c1c30d8fc2e22c3c9f"
-  template_image_id = resource.proxmox_virtual_environment_download_file.vm["ubuntu_2204"].id
-  name              = "duc-vm"
-  tags              = ["production"]
-  hostname          = "ducvm.local"
-  node_name         = local.node_name
-  ip_address        = "192.168.1.126/24"
-  bridge_name       = "vmbr0"
-  memory            = 1024 * 4
-  gateway           = local.lan_gateway
-  on_boot           = true
-  boot_disk_size    = 50
-  cpu_cores         = 1
-  cpu_type          = "host"
-  public_key        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDNmZMj5e5ZIFZshGc29JdjR0n4+xkwhccKZICZyOw7+59xINbrbEXBHxIkhBdChWeZRvlu+ceFyc24fl06O2qFdasahGQIstKhIQ9BnVT9zxJNkKf/ZP2gD74XcAcQU3nAp7cKFCq57jLhcdbSxXprDcuDtBswoABOWIsjMTBYqftoyuG0lHsfWe014J3E3XCP21qG1OBjcgUv5of8r7d9OeYBh8D4OTBi7ec5tl4pstiQMvibURdTEe/BIpnIt63nDJZTBmKauQ3/4H1IQ+QvVnAfgfwksrSvyim00YCTs72L52wHbohZRQ+QyDrmqr5w4bt70X6m9vL8y4+JbaOH14rGTYxT+nDYUGAmcx0JsSgEL3zzBdIN0FmFTxk7VsVtfOkh3s8EyS1bZn7yhPuCxnCmFtp0/NglKcKxfarflhA02on3tvDCF4BAOP5LIC5tslOvTablFSBa1LTSCmC6Bm9kiVkVNVvGEjIrlJYiu5g0xnTFyRkpIhBpkg40T0M="
   network_model     = "e1000e"
   startup_config = {
     order      = 1
