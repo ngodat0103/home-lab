@@ -12,32 +12,32 @@ module "ddns_records" {
   ddns_content         = var.ddns_content
   dns_records = {
     nextcloud = {
-      type = "CNAME"
+      type    = "CNAME"
       proxied = true
-      ttl = 360
+      ttl     = 360
     }
     gitlab = {
-      type = "CNAME"
+      type    = "CNAME"
       proxied = true
     }
     bitwarden = {
-      type = "CNAME"
+      type    = "CNAME"
       proxied = true
     }
-     sonarqube = {
-      type = "CNAME"
+    sonarqube = {
+      type    = "CNAME"
       proxied = true
     }
-     loki = {
-      type = "CNAME"
+    loki = {
+      type    = "CNAME"
       proxied = true
     }
-     prometheus = {
-      type = "CNAME"
+    prometheus = {
+      type    = "CNAME"
       proxied = true
     }
     grafana = {
-      type = "CNAME"
+      type    = "CNAME"
       proxied = true
     }
   }
@@ -74,10 +74,10 @@ module "personal_firewall" {
       expression  = "(ip.src.country ne \"VN\")"
     },
     {
-      action = "block"
+      action      = "block"
       description = "Block external access to /admin Vaultwarden"
-      enabled = true
-      expression = "(http.request.full_uri eq \"https://bitwarden.datrollout.dev/admin\")"
+      enabled     = true
+      expression  = "(http.request.full_uri eq \"https://bitwarden.datrollout.dev/admin\")"
     }
   ]
 }

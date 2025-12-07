@@ -19,7 +19,27 @@ http:
       service: sonarqube
       tls:
         certResolver: letsencrypt
+    loki-healthcheck:
+      entryPoints: [ "web", "websecure" ]
+      service: loki
+      rule: Host(`loki.datrollout.dev`) && Path(`/ready`)
+      tls:
+        certResolver: letsencrypt
+    prometheus-healthcheck:
+      entryPoints: [ "web", "websecure" ]
+      service: prometheus
+      rule: Host(`prometheus.datrollout.dev`) && Path(`/-/healthy`)
+      tls:
+        certResolver: letsencrypt
   services:
+    prometheus:
+      loadBalancer:
+        servers:
+        - url: http://192.168.30.4:9090
+    loki:
+      loadBalancer:
+        servers:
+        - url: http://192.168.30.21:3100
     sonarqube:
       loadBalancer:
         servers:

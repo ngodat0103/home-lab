@@ -1,11 +1,6 @@
 - name: manage traefik
   hosts: ubuntu-server
   become: yes
-  handlers:
-   - name: restart
-     ignore_errors: true
-     ansible.builtin.command:
-      cmd: ["bash","docker","restart","traefik"]
   vars:
    id: 1010
    docker_group_id: 999
@@ -52,7 +47,6 @@
       group: "{{id}}"
       mode: '600'
    - name: Copy dynamic config
-     notify: restart
      ansible.builtin.copy:
       src: files/traefik/dynamic.yaml
       dest: /etc/traefik/dynamic.yaml
@@ -67,6 +61,10 @@
       memory: "512M"
       cpus: 3
       user: "{{id}}:{{docker_group_id}}"
+      log_driver: 'json-file'
+      log_options:
+       max-size: 512m
+       max-file: 1
       restart_policy: always
       env:
         CF_DNS_API_TOKEN: "{{cloudflare_api_token}}"
