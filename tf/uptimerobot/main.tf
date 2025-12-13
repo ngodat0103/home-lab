@@ -36,15 +36,15 @@ module "monitors_default" {
       url  = "https://nextcloud.datrollout.dev/index.php/login"
       tags = local.snap_tag
     }
-    # prometheus = {
-    #   type = "HTTP"
-    #   url  = "https://prometheus.datrollout.dev/-/healthy"
-    #   tags = local.docker_containter_tag
-    # }
-    #  loki = {
-    #   type = "HTTP"
-    #   url  = "https://loki.datrollout.dev/ready"
-    #   tags = local.docker_containter_tag
-    # }
+    prometheus = {
+      type = "HTTP"
+      url  = "https://prometheus.datrollout.dev/-/healthy"
+      tags = local.docker_containter_tag
+    }
+     loki = {
+      type = "HTTP"
+      url  = "https://loki.datrollout.dev/ready"
+      tags = local.docker_containter_tag
+    }
   }
 }
