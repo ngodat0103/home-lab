@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5"
+    }
+  }
+}
 locals {
   cloudflare_api_token = var.cloudflare_api_token
   zone_id              = "ab6606e8b3aad0b66008eb26f2dd3660"
