@@ -6,9 +6,9 @@
       labels:
         com.github.ngodat0103.service: qbittorrent
       name: qbittorrent
-      cpus: 0.5
-      memory: "512M"
-      image: lscr.io/linuxserver/qbittorrent:5.1.2@sha256:ebfd00848045b30298bcb43627e24bd98ff2bbf584d9b3e62257586de85bcb15
+      cpus: 0.3
+      memory: "128M"
+      image: lscr.io/linuxserver/qbittorrent:5.1.4@sha256:043498de39c3dd63eec94360c5ad966a51271d1581070f42cb73ab0cf4776f29
       state: started
       restart_policy: always
       env:
