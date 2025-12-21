@@ -6,11 +6,16 @@
       labels:
         com.github.ngodat0103.service: qbittorrent
       name: qbittorrent
-      cpus: 0.3
+      cpus: 0.5
       memory: "128M"
       image: lscr.io/linuxserver/qbittorrent:5.1.4@sha256:043498de39c3dd63eec94360c5ad966a51271d1581070f42cb73ab0cf4776f29
       state: started
       restart_policy: always
+      exposed_ports:
+        - 8080
+        - 6881
+      published_ports:
+        - 6881:6881
       env:
         PUID: "1000"
         PGID: "1000"
