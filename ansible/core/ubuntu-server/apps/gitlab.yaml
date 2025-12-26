@@ -33,6 +33,7 @@
         traefik.http.routers.gitlab.rule: "Host(`{{domain}}`)"
         traefik.http.routers.gitlab.tls.certResolver: "letsencrypt"
         traefik.http.routers.gitlab.tls: "true"
+        traefik.http.routers.gitlab.middlewares: local-ipWhiteList@file
         traefik.http.services.gitlab.loadbalancer.server.port: "80"
         traefik.tcp.services.gitlab-ssh-service.loadbalancer.server.port: "22"
         traefik.tcp.services.gitlab-ssh-service.loadbalancer.server.tls: "false"

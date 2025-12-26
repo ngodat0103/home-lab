@@ -1,4 +1,8 @@
 http:
+  middlewares:
+    local-ipWhiteList:
+      IPAllowList:
+        sourceRange: [ "192.168.1.0/24" ]
   serversTransports:
     internal-skip-verify:
       insecureSkipVerify: true
