@@ -2,6 +2,11 @@
 ping:
   entryPoint: 'web'
 accessLog:
+  filters:
+    minDuration: "10ms"
+    retryAttempts: true
+    statusCodes:
+    - "400-599"
   fields:
     defaultMode: keep
     names:
