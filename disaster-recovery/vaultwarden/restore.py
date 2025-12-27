@@ -1,16 +1,24 @@
+#!/usr/bin/env python3
 import os
 import tarfile
+import sys
+from pathlib import Path
+
 import boto3
 import base64
-import sys
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from dotenv import load_dotenv
 
 from logger_config import setup_logger
-from dotenv import load_dotenv
+
 load_dotenv()
+
 logger = setup_logger("recovery_worker")
+
+# Use absolute paths based on script location
+SCRIPT_DIR = Path(__file__).parent.resolve()
 
 S3_BUCKET = os.getenv("S3_BUCKET")
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
@@ -19,8 +27,8 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 BACKUP_PASSWORD = os.getenv("BACKUP_PASSWORD")
 
-# Directories for restoration
-RESTORE_ROOT = "recovery_output"
+# Directory for restoration
+RESTORE_ROOT = SCRIPT_DIR / "recovery_output"
 
 
 def derive_key(password: str, salt: bytes) -> bytes:
@@ -34,7 +42,7 @@ def derive_key(password: str, salt: bytes) -> bytes:
     return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
 
-def download_from_s3(object_name, local_path):
+def download_from_s3(object_name: str, local_path: Path) -> bool:
     """Downloads the file from Cloudflare R2 / S3."""
     try:
         s3_client = boto3.client(
@@ -45,7 +53,7 @@ def download_from_s3(object_name, local_path):
             region_name=AWS_REGION
         )
         logger.info(f"Downloading {object_name} from {S3_BUCKET}...")
-        s3_client.download_file(S3_BUCKET, object_name, local_path)
+        s3_client.download_file(S3_BUCKET, object_name, str(local_path))
         logger.info("Download successful.")
         return True
     except Exception as e:
@@ -53,7 +61,7 @@ def download_from_s3(object_name, local_path):
         return False
 
 
-def decrypt_backup(encrypted_path, output_path):
+def decrypt_backup(encrypted_path: Path, output_path: Path) -> bool:
     """Reads salt, derives key, and decrypts the file."""
     if not BACKUP_PASSWORD:
         logger.critical("BACKUP_PASSWORD environment variable is missing!")
@@ -86,13 +94,50 @@ def decrypt_backup(encrypted_path, output_path):
         return False
 
 
-def extract_archive(tar_path, extract_to):
-    """Extracts the tar.gz archive."""
+def safe_extract_filter(member: tarfile.TarInfo, path: str) -> tarfile.TarInfo | None:
+    """
+    Filter for tar extraction to prevent path traversal attacks.
+    Rejects members with absolute paths or paths containing '..'.
+    """
+    # Reject absolute paths
+    if member.name.startswith('/') or member.name.startswith('\\'):
+        logger.warning(f"Skipping absolute path in archive: {member.name}")
+        return None
+
+    # Reject path traversal attempts
+    if '..' in member.name:
+        logger.warning(f"Skipping path traversal attempt in archive: {member.name}")
+        return None
+
+    # Resolve the final path and ensure it's within the extraction directory
+    dest_path = Path(path) / member.name
+    try:
+        dest_path.resolve().relative_to(Path(path).resolve())
+    except ValueError:
+        logger.warning(f"Skipping file that would extract outside target: {member.name}")
+        return None
+
+    return member
+
+
+def extract_archive(tar_path: Path, extract_to: Path) -> bool:
+    """Extracts the tar.gz archive safely."""
     logger.info(f"Extracting {tar_path} to {extract_to}...")
     try:
-        os.makedirs(extract_to, exist_ok=True)
+        extract_to.mkdir(parents=True, exist_ok=True)
         with tarfile.open(tar_path, "r:gz") as tar:
-            tar.extractall(path=extract_to)
+            # Use filter for safe extraction (Python 3.12+) or fallback
+            try:
+                tar.extractall(path=extract_to, filter=safe_extract_filter)
+            except TypeError:
+                # Python < 3.12 doesn't support filter parameter
+                # Manually filter members
+                safe_members = []
+                for member in tar.getmembers():
+                    if safe_extract_filter(member, str(extract_to)) is not None:
+                        safe_members.append(member)
+                tar.extractall(path=extract_to, members=safe_members)
+
         logger.info("Extraction successful.")
         return True
     except Exception as e:
@@ -100,43 +145,55 @@ def extract_archive(tar_path, extract_to):
         return False
 
 
-def main(backup_filename):
-    # Filenames
-    local_encrypted_file = backup_filename
-    decrypted_tar_file = backup_filename.replace(".enc", "")
+def main(backup_filename: str) -> int:
+    """Main restore workflow. Returns 0 on success, 1 on failure."""
+    # Convert to Path and resolve relative to script directory if not absolute
+    backup_file = Path(backup_filename)
+    if not backup_file.is_absolute():
+        backup_file = SCRIPT_DIR / backup_filename
+
+    local_encrypted_file = backup_file
+    decrypted_tar_file = backup_file.with_suffix('').with_suffix('.tar.gz') if backup_file.suffix == '.enc' else backup_file.parent / backup_file.name.replace('.enc', '')
 
     # 1. Check if file exists locally; if not, try to download
-    if not os.path.exists(local_encrypted_file):
+    if not local_encrypted_file.exists():
         logger.info(f"File {local_encrypted_file} not found locally. Attempting S3 download...")
-        if not download_from_s3(local_encrypted_file, local_encrypted_file):
+        if not download_from_s3(backup_filename, local_encrypted_file):
             logger.error("Could not find backup file.")
-            sys.exit(1)
+            return 1
 
     # 2. Decrypt
     if not decrypt_backup(local_encrypted_file, decrypted_tar_file):
-        sys.exit(1)
+        return 1
 
     # 3. Extract
-    if extract_archive(decrypted_tar_file, RESTORE_ROOT):
-        # Using print for final summary to ensure it stands out regardless of log level
-        logger.info("\n" + "=" * 40)
-        logger.info("✅ RECOVERY COMPLETE")
-        logger.info("=" * 40)
-        logger.info(f"Files have been extracted to: {os.path.abspath(RESTORE_ROOT)}")
-        logger.info("Contents:")
-        logger.info(f"  - Database Dump: {os.path.join(RESTORE_ROOT, 'vaultwarden.dump')}")
-        logger.info(f"  - Data Directory: {os.path.join(RESTORE_ROOT, 'data')}")
-        logger.info("\nTo finish restoration, you need to:")
-        logger.info("1. Restore the Postgres dump (e.g., pg_restore or psql < vaultwarden.dump)")
-        logger.info(f"2. Copy the contents of '{RESTORE_ROOT}/data' to your actual data volume.")
-        logger.info("=" * 40)
+    if not extract_archive(decrypted_tar_file, RESTORE_ROOT):
+        return 1
 
-    # Optional: Cleanup decrypted tarball
-    # os.remove(decrypted_tar_file)
+    # Success summary
+    logger.info("\n" + "=" * 40)
+    logger.info("✅ RECOVERY COMPLETE")
+    logger.info("=" * 40)
+    logger.info(f"Files have been extracted to: {RESTORE_ROOT}")
+    logger.info("Contents:")
+    logger.info(f"  - Database Dump: {RESTORE_ROOT / 'vaultwarden.dump'}")
+    logger.info(f"  - Data Directory: {RESTORE_ROOT / 'data'}")
+    logger.info("\nTo finish restoration, you need to:")
+    logger.info("1. Restore the Postgres dump (e.g., pg_restore -d vaultwarden vaultwarden.dump)")
+    logger.info(f"2. Copy the contents of '{RESTORE_ROOT / 'data'}' to your actual data volume.")
+    logger.info("=" * 40)
+
+    # Cleanup decrypted tarball
+    if decrypted_tar_file.exists():
+        decrypted_tar_file.unlink()
+        logger.info(f"Cleaned up decrypted archive: {decrypted_tar_file.name}")
+
+    return 0
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        # Use logger for usage error to keep formatting consistent
-        logger.error("Usage: python restore_worker.py <backup_filename_on_s3_or_local>")
+        logger.error("Usage: python restore.py <backup_filename_on_s3_or_local>")
         sys.exit(1)
     target_file = sys.argv[1]
-    main(target_file)
+    sys.exit(main(target_file))
