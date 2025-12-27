@@ -1,6 +1,6 @@
 import os
 import tarfile
-import datetime
+from datetime import datetime
 import boto3
 import base64
 from cryptography.fernet import Fernet
@@ -55,13 +55,14 @@ def upload_to_s3(file_path, object_name):
 if __name__ == "__main__":
     tar_filename = None
     encrypted_filename = None
+    from datetime import timezone
     try:
         # 1. Execute existing backup functions
         logger.info("Starting backup process...")
         backup_postgres()
         backup_vaultwarden_data()
         # Generate timestamp for naming
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S_UTC")
         tar_filename = f"vaultwarden-backup-{timestamp}.tar.gz"
         encrypted_filename = f"{tar_filename}.enc"
 
