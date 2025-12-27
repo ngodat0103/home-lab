@@ -35,6 +35,15 @@ http:
       rule: Host(`prometheus.datrollout.dev`) && Path(`/-/healthy`)
       tls:
         certResolver: letsencrypt
+    gitlab-healthcheck:
+      rule: Host(`gitlab.datrollout.dev`) && Path(`/-/liveness`) && Query(`token`, `wyBB2CFMykPhWLU_FExX`)
+      priority: 100
+      service: gitlab@docker
+      tls:
+        certResolver: letsencrypt
+      entryPoints:
+      - web
+      - websecure
   services:
     prometheus:
       loadBalancer:

@@ -23,7 +23,7 @@ module "monitors_default" {
   monitors = {
     gitlab = {
       type = "HTTP"
-      url  = "https://gitlab.datrollout.dev/users/sign_in"
+      url  = "https://gitlab.datrollout.dev/-/liveness?token=wyBB2CFMykPhWLU_FExX"
       tags = local.docker_containter_tag
     },
     vaultwarden = {
@@ -41,7 +41,7 @@ module "monitors_default" {
       url  = "https://prometheus.datrollout.dev/-/healthy"
       tags = local.docker_containter_tag
     }
-     loki = {
+    loki = {
       type = "HTTP"
       url  = "https://loki.datrollout.dev/ready"
       tags = local.docker_containter_tag
