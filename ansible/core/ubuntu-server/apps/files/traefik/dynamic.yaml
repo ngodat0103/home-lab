@@ -26,7 +26,7 @@ http:
     loki-healthcheck:
       entryPoints: [ "web", "websecure" ]
       service: loki
-      rule: Host(`loki.datrollout.dev`) && Path(`/ready`)
+      rule: Host(`loki.datrollout.dev`) && Path(`/metrics`)
       tls:
         certResolver: letsencrypt
     prometheus-healthcheck:
