@@ -43,7 +43,7 @@ module "monitors_default" {
     }
     loki = {
       type = "HTTP"
-      url  = "https://loki.datrollout.dev/ready"
+      url  = "https://loki.datrollout.dev/metrics"
       tags = local.docker_containter_tag
     }
   }
