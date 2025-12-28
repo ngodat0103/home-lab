@@ -1,6 +1,37 @@
 version: "3.9"
 
 services:
+  backup:
+    image: ghcr.io/ngodat0103/homelab/vaultwarden:v1
+    container_name: vaultwarden-backup
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - ./backup:/app/backup
+    environment:
+      # Database Configuration
+      VAULTWARDEN_DB_HOST: ${VAULTWARDEN_DB_HOST:-postgres}
+      VAULTWARDEN_DB_PORT: ${VAULTWARDEN_DB_PORT:-5432}
+      VAULTWARDEN_DB_NAME: ${VAULTWARDEN_DB_NAME:-vaultwarden}
+      VAULTWARDEN_DB_USERNAME: ${VAULTWARDEN_DB_USERNAME:-vaultwarden}
+      VAULTWARDEN_DB_PASSWORD: ${VAULTWARDEN_DB_PASSWORD}
+      VAULTWARDEN_DATA_DIR: ${VAULTWARDEN_DATA_DIR:-/app/data/vaultwarden}
+      # S3 Configuration
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-auto}
+      # Backup Configuration
+      BACKUP_PASSWORD: ${BACKUP_PASSWORD}
+      PGDUMP_TIMEOUT: ${PGDUMP_TIMEOUT:-300}
+    command: python backup.py
+    network_mode: host
+    profiles:
+      - manual
   minio:
     image: minio/minio:latest
     container_name: vw-minio

@@ -95,8 +95,7 @@ def main() -> int:
         with open(encrypted_path, "wb") as f:
             f.write(salt + encrypted_data)
 
-        # Upload to S3, Temporary for quick test recovery local first
-        # upload_to_s3(encrypted_path, encrypted_path.name)
+        upload_to_s3(encrypted_path, encrypted_path.name)
 
         logger.info("Backup completed successfully!")
         return 0
@@ -105,14 +104,13 @@ def main() -> int:
         logger.critical(f"Backup process failed: {e}", exc_info=True)
         return 1
 
-        # Upload to S3, Temporary for quick test recovery local first
-    # finally:
-    #     # Cleanup temporary files
-    #     logger.info("Cleaning up local files...")
-    #     for path in [tar_path, encrypted_path]:
-    #         if path and path.exists():
-    #             path.unlink()
-    #             logger.info(f"Removed {path.name}")
+    finally:
+        # Cleanup temporary files
+        logger.info("Cleaning up local files...")
+        for path in [tar_path, encrypted_path]:
+            if path and path.exists():
+                path.unlink()
+                logger.info(f"Removed {path.name}")
 
 
 if __name__ == "__main__":
