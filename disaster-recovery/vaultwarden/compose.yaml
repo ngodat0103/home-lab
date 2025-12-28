@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   backup:
-    image: ghcr.io/ngodat0103/homelab/vaultwarden:v1
+    image: ghcr.io/ngodat0103/homelab/vaultwarden-backup-utility:v1
     container_name: vaultwarden-backup
     build:
       context: .
@@ -31,7 +31,7 @@ services:
     command: python backup.py
     network_mode: host
     profiles:
-      - manual
+      - test
   minio:
     image: minio/minio:latest
     container_name: vw-minio
