@@ -61,6 +61,129 @@ CONTAINER_START_TIMEOUT = 30
 POSTGRES_READY_TIMEOUT = 60
 
 
+def check_dependencies() -> bool:
+    """Check all required dependencies before starting restore."""
+    logger.info("\n" + "=" * 70)
+    logger.info("DEPENDENCY CHECK")
+    logger.info("=" * 70)
+    
+    all_checks_passed = True
+    
+    # Check 1: Required executables
+    logger.info("\n📋 Checking required executables...")
+    executables = {
+        "pg_restore": "PostgreSQL restore utility",
+        "psql": "PostgreSQL interactive terminal",
+        "pg_isready": "PostgreSQL connection check utility",
+        "docker": "Docker CLI"
+    }
+    
+    for exe, description in executables.items():
+        if shutil.which(exe):
+            logger.info(f"  ✅ {exe:15s} - Found")
+        else:
+            logger.error(f"  ❌ {exe:15s} - NOT FOUND ({description})")
+            all_checks_passed = False
+    
+    # Check 2: Required environment variables
+    logger.info("\n🔐 Checking required environment variables...")
+    required_env_vars = {
+        "BACKUP_PASSWORD": "Encryption password for backup",
+        "VAULTWARDEN_DB_HOST": "PostgreSQL host",
+        "VAULTWARDEN_DB_PORT": "PostgreSQL port",
+        "VAULTWARDEN_DB_NAME": "PostgreSQL database name",
+        "VAULTWARDEN_DB_USERNAME": "PostgreSQL username",
+        "VAULTWARDEN_DB_PASSWORD": "PostgreSQL password",
+    }
+    
+    # S3 vars are optional (can use local file)
+    optional_env_vars = {
+        "S3_BUCKET": "S3 bucket name",
+        "S3_ENDPOINT": "S3 endpoint URL",
+        "AWS_ACCESS_KEY_ID": "AWS access key",
+        "AWS_SECRET_ACCESS_KEY": "AWS secret key",
+    }
+    
+    for var, description in required_env_vars.items():
+        value = os.getenv(var)
+        if value:
+            # Mask sensitive values
+            if any(x in var.lower() for x in ['password', 'secret', 'key']):
+                display_value = "***" + value[-4:] if len(value) > 4 else "****"
+            else:
+                display_value = value[:30] + "..." if len(value) > 30 else value
+            logger.info(f"  ✅ {var:30s} - Set ({display_value})")
+        else:
+            logger.error(f"  ❌ {var:30s} - NOT SET ({description})")
+            all_checks_passed = False
+    
+    logger.info("\n🔐 Checking optional environment variables (for S3 download)...")
+    all_s3_set = True
+    for var, description in optional_env_vars.items():
+        value = os.getenv(var)
+        if value:
+            if any(x in var.lower() for x in ['password', 'secret', 'key']):
+                display_value = "***" + value[-4:] if len(value) > 4 else "****"
+            else:
+                display_value = value[:30] + "..." if len(value) > 30 else value
+            logger.info(f"  ✅ {var:30s} - Set ({display_value})")
+        else:
+            logger.warning(f"  ⚠️  {var:30s} - NOT SET (will use local file)")
+            all_s3_set = False
+    
+    if not all_s3_set:
+        logger.info("  ℹ️  S3 download will be unavailable. Ensure backup file exists locally.")
+    
+    # Check 3: Docker connectivity
+    logger.info("\n🐳 Checking Docker connectivity...")
+    try:
+        client = docker.from_env()
+        client.ping()
+        logger.info("  ✅ Docker daemon is accessible")
+        
+        # Check for compose file
+        if COMPOSE_FILE.exists():
+            logger.info(f"  ✅ Docker Compose file found: {COMPOSE_FILE}")
+        else:
+            logger.warning(f"  ⚠️  Docker Compose file not found: {COMPOSE_FILE}")
+    except docker.errors.DockerException as e:
+        logger.error(f"  ❌ Cannot connect to Docker daemon: {e}")
+        all_checks_passed = False
+    
+    # Check 4: Restore directory writable
+    logger.info("\n💾 Checking restore directory...")
+    try:
+        RESTORE_TEMP.mkdir(parents=True, exist_ok=True)
+        test_file = RESTORE_TEMP / ".write_test"
+        test_file.touch()
+        test_file.unlink()
+        logger.info(f"  ✅ Restore directory writable: {RESTORE_TEMP}")
+    except Exception as e:
+        logger.error(f"  ❌ Restore directory not writable: {RESTORE_TEMP} ({e})")
+        all_checks_passed = False
+    
+    # Check 5: Python packages
+    logger.info("\n📦 Checking Python dependencies...")
+    packages = ["boto3", "cryptography", "docker"]
+    for package in packages:
+        try:
+            __import__(package)
+            logger.info(f"  ✅ {package:20s} - Installed")
+        except ImportError:
+            logger.error(f"  ❌ {package:20s} - NOT INSTALLED")
+            all_checks_passed = False
+    
+    # Summary
+    logger.info("\n" + "=" * 70)
+    if all_checks_passed:
+        logger.info("✅ ALL DEPENDENCY CHECKS PASSED")
+    else:
+        logger.error("❌ SOME DEPENDENCY CHECKS FAILED")
+    logger.info("=" * 70 + "\n")
+    
+    return all_checks_passed
+
+
 class DockerOrchestrator:
     """Manages Docker container lifecycle for recovery."""
 
@@ -430,39 +553,61 @@ def main(backup_filename: str) -> int:
     docker_orchestrator: DockerOrchestrator | None = None
 
     try:
+        # Check all dependencies first
+        if not check_dependencies():
+            logger.critical("Dependency checks failed. Cannot proceed with restore.")
+            return 1
+
         logger.info("\n" + "═" * 60)
         logger.info("PHASE 1: PREPARING BACKUP FILE")
         logger.info("═" * 60)
 
         if not local_encrypted_file.exists():
-            logger.info(f"File {local_encrypted_file} not found locally. Attempting S3 download...")
+            logger.info(f"📥 File {local_encrypted_file} not found locally.")
+            logger.info("   Attempting S3 download...")
             if not download_from_s3(backup_filename, local_encrypted_file):
-                logger.error("Could not find backup file.")
+                logger.error("Could not find backup file locally or in S3.")
                 return 1
+        else:
+            file_size_mb = local_encrypted_file.stat().st_size / (1024 * 1024)
+            logger.info(f"✅ Found local backup file: {local_encrypted_file.name} ({file_size_mb:.2f} MB)")
 
         logger.info("\n" + "═" * 60)
         logger.info("PHASE 2: DECRYPTING AND EXTRACTING BACKUP")
         logger.info("═" * 60)
 
+        logger.info("🔓 Decrypting backup...")
         if not decrypt_backup(local_encrypted_file, decrypted_tar_file):
             return 1
+        decrypted_size_mb = decrypted_tar_file.stat().st_size / (1024 * 1024)
+        logger.info(f"✅ Decryption successful ({decrypted_size_mb:.2f} MB)\n")
 
+        logger.info("📦 Extracting archive...")
         if not extract_archive(decrypted_tar_file, RESTORE_TEMP):
             return 1
+        logger.info("✅ Extraction successful\n")
 
         # Verify extracted contents
+        logger.info("🔍 Verifying backup contents...")
         dump_file = RESTORE_TEMP / "vaultwarden.dump"
         data_dir = RESTORE_TEMP / "data"
 
         if not dump_file.exists():
-            logger.error(f"Database dump not found in backup: {dump_file}")
+            logger.error(f"❌ Database dump not found in backup: {dump_file}")
             return 1
+        else:
+            dump_size_mb = dump_file.stat().st_size / (1024 * 1024)
+            logger.info(f"  ✅ Database dump found ({dump_size_mb:.2f} MB)")
 
         if not data_dir.exists():
-            logger.error(f"Data directory not found in backup: {data_dir}")
+            logger.error(f"❌ Data directory not found in backup: {data_dir}")
             return 1
+        else:
+            # Count files in data directory
+            file_count = sum(1 for _ in data_dir.rglob('*') if _.is_file())
+            logger.info(f"  ✅ Data directory found ({file_count} files)")
 
-        logger.info("Backup contents verified")
+        logger.info("✅ Backup contents verified\n")
 
         # ═══════════════════════════════════════════════════════════════════
         # PHASE 3: Connect to Docker and stop containers
@@ -474,24 +619,32 @@ def main(backup_filename: str) -> int:
         docker_orchestrator = DockerOrchestrator()
 
         # Stop vaultwarden first (depends on postgres)
+        logger.info("🛑 Stopping Vaultwarden container...")
         if not docker_orchestrator.stop_container(CONTAINER_VAULTWARDEN):
-            logger.warning("Failed to stop Vaultwarden container, continuing anyway...")
+            logger.warning("⚠️  Failed to stop Vaultwarden container, continuing anyway...")
+        else:
+            logger.info("✅ Vaultwarden stopped\n")
 
         # Keep postgres running for restore, but stop vaultwarden to prevent conflicts
         # Start postgres if not running
+        logger.info("🚀 Ensuring PostgreSQL container is running...")
         if not docker_orchestrator.start_container(CONTAINER_POSTGRES):
             # Try compose up to create containers if they don't exist
-            logger.info("PostgreSQL container not found, running docker compose up...")
+            logger.info("   PostgreSQL container not found, running docker compose up...")
             if not docker_orchestrator.compose_up():
-                logger.error("Failed to start services")
+                logger.error("❌ Failed to start services")
                 return 1
             # Stop vaultwarden again after compose up
             docker_orchestrator.stop_container(CONTAINER_VAULTWARDEN)
+        
+        logger.info("✅ PostgreSQL container running\n")
 
         # Wait for PostgreSQL to be ready
+        logger.info("⏳ Waiting for PostgreSQL to be ready...")
         if not docker_orchestrator.wait_for_postgres():
-            logger.error("PostgreSQL is not ready for restore")
+            logger.error("❌ PostgreSQL is not ready for restore")
             return 1
+        logger.info("✅ PostgreSQL is ready\n")
 
         # ═══════════════════════════════════════════════════════════════════
         # PHASE 4: Restore database
@@ -500,9 +653,11 @@ def main(backup_filename: str) -> int:
         logger.info("PHASE 4: RESTORING POSTGRESQL DATABASE")
         logger.info("═" * 60)
 
+        logger.info("🗄️  Restoring database from dump...")
         if not restore_postgres_database(dump_file):
-            logger.error("Database restore failed!")
+            logger.error("❌ Database restore failed!")
             return 1
+        logger.info("✅ Database restore completed\n")
 
         # ═══════════════════════════════════════════════════════════════════
         # PHASE 5: Restore Vaultwarden data
@@ -511,9 +666,11 @@ def main(backup_filename: str) -> int:
         logger.info("PHASE 5: RESTORING VAULTWARDEN DATA")
         logger.info("═" * 60)
 
+        logger.info("📁 Restoring Vaultwarden data directory...")
         if not restore_vaultwarden_data(data_dir):
-            logger.error("Data restore failed!")
+            logger.error("❌ Data restore failed!")
             return 1
+        logger.info("✅ Data restore completed\n")
 
         # ═══════════════════════════════════════════════════════════════════
         # PHASE 6: Bring services back online
@@ -522,22 +679,30 @@ def main(backup_filename: str) -> int:
         logger.info("PHASE 6: STARTING ALL SERVICES")
         logger.info("═" * 60)
 
+        logger.info("🚀 Starting all containers with docker compose...")
         if not docker_orchestrator.compose_up():
-            logger.error("Failed to start services")
+            logger.error("❌ Failed to start services")
             return 1
+        logger.info("✅ Services started\n")
 
         # Wait a moment for services to stabilize
+        logger.info("⏳ Waiting for services to stabilize...")
         time.sleep(3)
 
         # Verify services are running
+        logger.info("🔍 Verifying container status...")
         vw_container = docker_orchestrator.get_container(CONTAINER_VAULTWARDEN)
         pg_container = docker_orchestrator.get_container(CONTAINER_POSTGRES)
 
         if not vw_container or vw_container.status != "running":
-            logger.warning("Vaultwarden container may not be running properly")
+            logger.warning("⚠️  Vaultwarden container may not be running properly")
+        else:
+            logger.info(f"  ✅ {CONTAINER_VAULTWARDEN}: {vw_container.status}")
 
         if not pg_container or pg_container.status != "running":
-            logger.warning("PostgreSQL container may not be running properly")
+            logger.warning("⚠️  PostgreSQL container may not be running properly")
+        else:
+            logger.info(f"  ✅ {CONTAINER_POSTGRES}: {pg_container.status}")
 
         logger.info("\n" + "═" * 60)
         logger.info("✅ FULL RECOVERY COMPLETE")
