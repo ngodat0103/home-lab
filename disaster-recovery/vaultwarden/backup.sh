@@ -2,6 +2,7 @@
 
 set -e
 
+# Default config file path
 CONFIG_FILE="$HOME/.vaultwarden_backup.conf"
 CONFIG_DIR="$HOME/.config/vaultwarden"
 
@@ -10,11 +11,31 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check for non-interactive mode
+# Check for non-interactive mode and config file path
 NON_INTERACTIVE=false
-if [[ "$1" == "--no-interactive" ]] || [[ "$2" == "--no-interactive" ]]; then
-    NON_INTERACTIVE=true
-fi
+CUSTOM_CONFIG=false
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --config|-c)
+            CONFIG_FILE="$2"
+            CUSTOM_CONFIG=true
+            shift 2
+            ;;
+        --no-interactive)
+            NON_INTERACTIVE=true
+            shift
+            ;;
+        --reconfigure|--show-config|--help|-h)
+            # Handle these later
+            break
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
 print_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -31,7 +52,7 @@ print_error() {
 # Function to mask sensitive values
 mask_value() {
     local value="$1"
-    local show_chars="${2:-4}"  # Show first 4 chars by default
+    local show_chars="${2:-4}"
 
     if [ -z "$value" ]; then
         echo ""
@@ -73,27 +94,33 @@ prompt_input() {
 # Function to load existing config
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        print_info "Found existing configuration at $CONFIG_FILE"
+        # Only print info in interactive mode
+        if [ "$NON_INTERACTIVE" = false ]; then
+            print_info "Found existing configuration at $CONFIG_FILE"
+        fi
+
         source "$CONFIG_FILE"
 
-        # Display loaded config with masked sensitive values
-        echo ""
-        print_info "Loaded configuration:"
-        echo "  Database Host: $VAULTWARDEN_DB_HOST"
-        echo "  Database Port: $VAULTWARDEN_DB_PORT"
-        echo "  Database Name: $VAULTWARDEN_DB_NAME"
-        echo "  Database Username: $VAULTWARDEN_DB_USERNAME"
-        echo "  Database Password: $(mask_value "$VAULTWARDEN_DB_PASSWORD")"
-        echo "  Data Directory: $VAULTWARDEN_DATA_DIR"
-        echo "  S3 Bucket: $S3_BUCKET"
-        echo "  S3 Endpoint: $S3_ENDPOINT"
-        echo "  AWS Access Key: $(mask_value "$AWS_ACCESS_KEY_ID")"
-        echo "  AWS Secret Key: $(mask_value "$AWS_SECRET_ACCESS_KEY")"
-        echo "  AWS Region: $AWS_REGION"
-        echo "  Backup Password: $(mask_value "$BACKUP_PASSWORD")"
-        echo "  Local Data Dir: $LOCAL_DATA_DIR"
-        echo "  Local Backup Dir: $LOCAL_BACKUP_DIR"
-        echo ""
+        # Display loaded config only in interactive mode
+        if [ "$NON_INTERACTIVE" = false ]; then
+            echo ""
+            print_info "Loaded configuration:"
+            echo "  Database Host: $VAULTWARDEN_DB_HOST"
+            echo "  Database Port: $VAULTWARDEN_DB_PORT"
+            echo "  Database Name: $VAULTWARDEN_DB_NAME"
+            echo "  Database Username: $VAULTWARDEN_DB_USERNAME"
+            echo "  Database Password: $(mask_value "$VAULTWARDEN_DB_PASSWORD")"
+            echo "  Data Directory: $VAULTWARDEN_DATA_DIR"
+            echo "  S3 Bucket: $S3_BUCKET"
+            echo "  S3 Endpoint: $S3_ENDPOINT"
+            echo "  AWS Access Key: $(mask_value "$AWS_ACCESS_KEY_ID")"
+            echo "  AWS Secret Key: $(mask_value "$AWS_SECRET_ACCESS_KEY")"
+            echo "  AWS Region: $AWS_REGION"
+            echo "  Backup Password: $(mask_value "$BACKUP_PASSWORD")"
+            echo "  Local Data Dir: $LOCAL_DATA_DIR"
+            echo "  Local Backup Dir: $LOCAL_BACKUP_DIR"
+            echo ""
+        fi
 
         return 0
     fi
@@ -102,7 +129,9 @@ load_config() {
 
 # Function to save config
 save_config() {
-    mkdir -p "$CONFIG_DIR"
+    # Create directory for config file if needed
+    local config_dir=$(dirname "$CONFIG_FILE")
+    mkdir -p "$config_dir"
 
     cat > "$CONFIG_FILE" << EOF
 # Vaultwarden Backup Configuration
@@ -160,8 +189,13 @@ collect_config() {
     echo ""
     print_info "=== Backup Configuration ==="
     prompt_input "Backup encryption password" "$(mask_value "$BACKUP_PASSWORD")" BACKUP_PASSWORD true
-    prompt_input "Local data directory" "${LOCAL_DATA_DIR:-$(pwd)/data}" LOCAL_DATA_DIR
-    prompt_input "Temporary working directory" "${LOCAL_BACKUP_DIR:-$(pwd)/backup}" LOCAL_BACKUP_DIR
+
+    # Use absolute paths for defaults
+    local default_data_dir="/var/backups/vaultwarden/data"
+    local default_backup_dir="/var/backups/vaultwarden/temp"
+
+    prompt_input "Local data directory" "${LOCAL_DATA_DIR:-$default_data_dir}" LOCAL_DATA_DIR
+    prompt_input "Temporary working directory" "${LOCAL_BACKUP_DIR:-$default_backup_dir}" LOCAL_BACKUP_DIR
 }
 
 # Function to validate configuration
@@ -181,13 +215,17 @@ validate_config() {
         return 1
     fi
 
-    print_info "Configuration validation passed"
+    if [ "$NON_INTERACTIVE" = false ]; then
+        print_info "Configuration validation passed"
+    fi
     return 0
 }
 
 # Function to run backup
 run_backup() {
-    print_info "Starting Vaultwarden backup..."
+    if [ "$NON_INTERACTIVE" = false ]; then
+        print_info "Starting Vaultwarden backup..."
+    fi
 
     # Create local directories if they don't exist
     mkdir -p "$LOCAL_DATA_DIR"
@@ -223,19 +261,20 @@ run_backup() {
 
 # Main script logic
 main() {
-    echo ""
-    print_info "Vaultwarden Backup Script"
-    echo ""
+    if [ "$NON_INTERACTIVE" = false ]; then
+        echo ""
+        print_info "Vaultwarden Backup Script"
+        echo ""
+    fi
 
     # Try to load existing config
     if load_config; then
         # Config exists - validate and run
         if [ "$NON_INTERACTIVE" = true ]; then
-            print_info "Running in non-interactive mode with existing configuration"
             if validate_config; then
                 run_backup
             else
-                print_error "Configuration validation failed. Please run without --no-interactive to reconfigure."
+                print_error "Configuration validation failed. Config file: $CONFIG_FILE"
                 exit 1
             fi
         else
@@ -271,8 +310,8 @@ main() {
     else
         # No config found
         if [ "$NON_INTERACTIVE" = true ]; then
-            print_error "No configuration found and running in non-interactive mode."
-            print_error "Please run without --no-interactive to create initial configuration."
+            print_error "No configuration found at: $CONFIG_FILE"
+            print_error "Please create a configuration file or run without --no-interactive"
             exit 1
         else
             print_warn "No existing configuration found. Please provide configuration details."
@@ -312,7 +351,7 @@ case "${1:-}" in
     --show-config)
         if [ -f "$CONFIG_FILE" ]; then
             source "$CONFIG_FILE"
-            print_info "Current configuration:"
+            print_info "Current configuration (from $CONFIG_FILE):"
             echo "  Database Host: $VAULTWARDEN_DB_HOST"
             echo "  Database Port: $VAULTWARDEN_DB_PORT"
             echo "  Database Name: $VAULTWARDEN_DB_NAME"
@@ -337,11 +376,17 @@ case "${1:-}" in
         echo "Usage: $0 [OPTIONS]"
         echo ""
         echo "Options:"
-        echo "  (no args)          Run backup with interactive configuration"
-        echo "  --no-interactive   Run backup without prompts (requires existing config)"
-        echo "  --reconfigure      Reconfigure and save settings"
-        echo "  --show-config      Display current configuration (with masked passwords)"
-        echo "  --help, -h         Show this help message"
+        echo "  (no args)             Run backup with interactive configuration"
+        echo "  --config, -c PATH     Use custom config file path (default: ~/.vaultwarden_backup.conf)"
+        echo "  --no-interactive      Run backup without prompts (requires existing config)"
+        echo "  --reconfigure         Reconfigure and save settings"
+        echo "  --show-config         Display current configuration (with masked passwords)"
+        echo "  --help, -h            Show this help message"
+        echo ""
+        echo "Examples:"
+        echo "  $0                                                    # Interactive mode"
+        echo "  $0 --no-interactive                                   # Cron mode with default config"
+        echo "  $0 --config /etc/vaultwarden/backup.conf --no-interactive  # Cron with custom config"
         echo ""
         echo "Behavior:"
         echo "  - If config exists: validates and runs backup"
@@ -350,4 +395,5 @@ case "${1:-}" in
         exit 0
         ;;
 esac
+
 main
