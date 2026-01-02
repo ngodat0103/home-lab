@@ -234,7 +234,7 @@ loki.source.file "vaultwarden_backup" {
     {
       __path__ = "/var/log/vaultwarden-backup.log",
       job      = "vaultwarden-backup",
-      service = "cronjob"
+      service = "cronjob",
     },
   ]
   forward_to = [loki.write.local.receiver]
