@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Data and backups
+data/
+backup/
+*.tar.gz
+*.tar.gz.enc
+*.dump
+
+# Docker
+compose.yaml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# OS
+.DS_Store
+Thumbs.db
+
