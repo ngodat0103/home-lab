@@ -30,7 +30,7 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 COPY --chmod=744 \
-    backup.py \
+    backup/backup.py \
     backup_db.py \
     backup_data.py \
     restore.py \
