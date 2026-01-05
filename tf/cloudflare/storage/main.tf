@@ -6,12 +6,16 @@ terraform {
     }
   }
 }
-locals {
-        storageName = "backup-storage-prod"
-}
-resource "cloudflare_r2_bucket" "backupStorage" {
+
+resource "cloudflare_r2_bucket" "backupStorageProd" {
   account_id    = "4c8ad4e9fa8213af3fd284bb97b68b5e"
-  name          = local.storageName
+  name          = "backup-storage-prod"
+  location      = "apac"
+  storage_class = "Standard"
+}
+resource "cloudflare_r2_bucket" "backupStorageDev" {
+  account_id    = "4c8ad4e9fa8213af3fd284bb97b68b5e"
+  name          = "backup-storage-dev"
   location      = "apac"
   storage_class = "Standard"
 }

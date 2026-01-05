@@ -78,7 +78,7 @@
     ansible.builtin.import_role:
       name: postgresql-client
   - name: Make sure backup.sh is present
-    become_user: vaultwarden
+    become: yes
     vars:
      PGPASSWORD: !vault |
         $ANSIBLE_VAULT;1.1;AES256

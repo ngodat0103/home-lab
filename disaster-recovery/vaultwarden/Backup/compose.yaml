@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+  backup:
+    image: ghcr.io/ngodat0103/homelab/vaultwarden-backup-utility:v1
+    container_name: vaultwarden-backup
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - ./backup:/app/backup
+    environment:
+      # Database Configuration
+      VAULTWARDEN_DB_HOST: ${VAULTWARDEN_DB_HOST:-postgres}
+      VAULTWARDEN_DB_PORT: ${VAULTWARDEN_DB_PORT:-5432}
+      VAULTWARDEN_DB_NAME: ${VAULTWARDEN_DB_NAME:-vaultwarden}
+      VAULTWARDEN_DB_USERNAME: ${VAULTWARDEN_DB_USERNAME:-vaultwarden}
+      VAULTWARDEN_DB_PASSWORD: ${VAULTWARDEN_DB_PASSWORD}
+      VAULTWARDEN_DATA_DIR: ${VAULTWARDEN_DATA_DIR:-/app/data/vaultwarden}
+      # S3 Configuration
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-auto}
+      # Backup Configuration
+      BACKUP_PASSWORD: ${BACKUP_PASSWORD}
+      PGDUMP_TIMEOUT: ${PGDUMP_TIMEOUT:-300}
+    command: python backup.py
+    network_mode: host
+    profiles:
+      - test
+  minio:
+    image: minio/minio:latest
+    container_name: vw-minio
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - vw-net
+  postgres:
+    image: postgres:16
+    container_name: vw-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${VAULTWARDEN_DB_NAME}
+      POSTGRES_USER: ${VAULTWARDEN_DB_USERNAME}
+      POSTGRES_PASSWORD: ${VAULTWARDEN_DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/16/main
+    volumes:
+      - postgres-data:/var/lib/postgresql/16/main
+    networks:
+      - vw-net
+  vaultwarden:
+    image: vaultwarden/server:1.34.3
+    container_name: vaultwarden
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://${VAULTWARDEN_DB_USERNAME}:${VAULTWARDEN_DB_PASSWORD}@postgres:5432/${VAULTWARDEN_DB_NAME}
+      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_TOKEN}
+      SIGNUPS_ALLOWED: "true"
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data/vaultwarden:/data
+    networks:
+      - vw-net
+volumes:
+  postgres-data:
+networks:
+  vw-net:
+    driver: bridge
